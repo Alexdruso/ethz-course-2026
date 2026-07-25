@@ -208,7 +208,7 @@ class TinyViT(nn.Module):
         grid = 28 // patch_size
         self.num_tokens = grid * grid
         self.patch_size = patch_size
-        patch_dim = patch_size * patch_size
+        patch_size * patch_size
 
         # TODO: implement a strategy for embedding the patches
 

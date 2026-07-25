@@ -68,8 +68,6 @@ def make_tensor(
 
 x = make_tensor([[1, 2], [3, 4]], dtype=torch.float32)
 
-x
-
 
 # %%
 def make_zeros(
@@ -83,8 +81,6 @@ def make_zeros(
 
 z = make_zeros((2, 3), dtype=torch.float64)
 
-z
-
 
 # %%
 def make_ones_like(x: torch.Tensor) -> torch.Tensor:
@@ -94,8 +90,6 @@ def make_ones_like(x: torch.Tensor) -> torch.Tensor:
 
 base = torch.randn(2, 3, dtype=torch.float32)
 ones = make_ones_like(base)
-
-ones
 
 
 # %%
@@ -112,8 +106,6 @@ def make_arange(
 
 ar = make_arange(0, 5, 2, dtype=torch.int64)
 
-ar
-
 
 # %%
 def make_linspace(
@@ -128,8 +120,6 @@ def make_linspace(
 
 
 ls = make_linspace(0.0, 1.0, steps=5, dtype=torch.float32)
-
-# ls
 
 
 # %%
@@ -147,8 +137,6 @@ def make_randn(
 
 a = make_randn((2, 3), seed=123, dtype=torch.float32)
 
-a
-
 
 # %%
 def cast_dtype_and_move(
@@ -161,8 +149,6 @@ def cast_dtype_and_move(
 casted = cast_dtype_and_move(
     torch.tensor([1, 2, 3]), torch.device("cpu"), torch.float32
 )
-
-casted.device
 
 
 # %% [markdown]
@@ -282,8 +268,6 @@ def slice_rows(x: torch.Tensor, start: int, end: int) -> torch.Tensor:
 x = torch.arange(12).reshape(4, 3)
 rows = slice_rows(x, 1, 3)
 
-rows
-
 
 # %%
 def select_columns(x: torch.Tensor, cols: Sequence[int]) -> torch.Tensor:
@@ -293,8 +277,6 @@ def select_columns(x: torch.Tensor, cols: Sequence[int]) -> torch.Tensor:
 
 cols = select_columns(x, [0, 2])
 
-cols
-
 
 # %%
 def get_diagonal(x: torch.Tensor) -> torch.Tensor:
@@ -303,8 +285,6 @@ def get_diagonal(x: torch.Tensor) -> torch.Tensor:
 
 
 d = get_diagonal(torch.tensor([[1, 2], [3, 4]]))
-
-d
 
 
 # %%
@@ -319,8 +299,6 @@ def set_subtensor(
 
 base = torch.zeros(2, 2)
 out = set_subtensor(base, 0, 1, 5.0)
-
-out
 
 
 # %%
@@ -523,8 +501,6 @@ example_indices = torch.tensor([0, 2, 1])
 num_classes = 3
 one_hot_encoded = one_hot(example_indices, num_classes)
 
-one_hot_encoded
-
 
 # %%
 def scatter_add_1d(
@@ -585,8 +561,6 @@ def masked_mean(x: torch.Tensor, mask: torch.Tensor, dim: int) -> torch.Tensor:
 example_x = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
 example_mask = torch.tensor([[True, False], [False, True]])
 mean_result = masked_mean(example_x, example_mask, dim=1)
-
-mean_result
 
 
 # %% [markdown]
@@ -741,7 +715,12 @@ def masked_softmax(x: torch.Tensor, mask: torch.Tensor, dim: int = -1) -> torch.
     - You may reuse functions you implemented above.
     """
     x_hat = masked_fill_tensor(x, mask, -torch.inf)
-    return stable_softmax(x_hat, dim=dim)
+
+    all_masked = mask.all(dim=dim, keepdim=True)
+
+    return torch.where(
+        all_masked, torch.zeros_like(x_hat), stable_softmax(x_hat, dim=dim)
+    )
 
 
 # %%
