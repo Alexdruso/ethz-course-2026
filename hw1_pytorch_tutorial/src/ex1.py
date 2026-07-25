@@ -763,4 +763,4 @@ def apply_causal_mask(attn_logits: torch.Tensor, value: float = -1e9) -> torch.T
     - You may reuse functions declared above.
     """
     causal_mask = make_causal_mask(attn_logits.shape[-1], device=attn_logits.device)
-    return masked_softmax(attn_logits, causal_mask)
+    return masked_fill_tensor(attn_logits, causal_mask, value)
