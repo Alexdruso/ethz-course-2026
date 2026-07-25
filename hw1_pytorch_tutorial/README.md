@@ -26,6 +26,18 @@ uv pip install torch torchvision jupyter
 
 For an introduction on how to use jupyter notebooks, you may check this ressource: https://docs.jupyter.org/en/latest/
 
+## Running the tests
+
+The `tests/` folder contains a pytest suite for the exercise functions:
+
+```bash
+make py-test               # installs pytest into .venv on first run
+make py-test ARGS="-k ex1" # forward extra flags to pytest
+```
+
+Tests for functions that are still `TODO` fail until you implement them - they
+double as the spec for what each function has to do.
+
 ## Getting started
 
 All exercises live in `src/`.
