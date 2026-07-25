@@ -87,6 +87,4 @@ class TestGatherRows:
         gathered = gather_rows(x, idx)
 
         assert gathered.shape == (3, 2)
-        assert torch.equal(
-            gathered, torch.tensor([[3.0, 4.0], [3.0, 4.0], [1.0, 2.0]])
-        )
+        assert torch.equal(gathered, torch.tensor([[3.0, 4.0], [3.0, 4.0], [1.0, 2.0]]))

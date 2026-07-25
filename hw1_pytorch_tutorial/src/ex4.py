@@ -99,12 +99,10 @@
 # %%
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
@@ -147,6 +145,7 @@ class FeedForward(nn.Module):
     Standard Transformer FFN:
       x -> Linear(d_model->d_ff) -> GELU -> Dropout -> Linear(d_ff->d_model) -> Dropout
     """
+
     def __init__(self, d_model: int, d_ff: int, dropout: float):
         super().__init__()
         # TODO: implement
@@ -159,6 +158,7 @@ class FeedForward(nn.Module):
 
 class GLUFeedForward(nn.Module):
     """GLU-family FFN"""
+
     def __init__(self, d_model: int, d_ff_gated: int, dropout: float, variant: str):
         super().__init__()
         # TODO: implement
@@ -176,9 +176,10 @@ class TransformerEncoderBlock(nn.Module):
       x = x + Dropout(SelfAttn(LN(x)))
       x = x + Dropout(MLP(LN(x)))
     """
+
     def __init__(self, d_model: int, n_heads: int, mlp: nn.Module, dropout: float):
         super().__init__()
-        # TODO: implement. For attention use nn.MultiHeadAttention 
+        # TODO: implement. For attention use nn.MultiHeadAttention
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # TODO: implement
@@ -191,6 +192,7 @@ class TinyViT(nn.Module):
     Tiny ViT-style classifier for MNIST.
     - patchify -> patch embed -> pos embed -> blocks -> mean pool -> head
     """
+
     def __init__(
         self,
         patch_size: int,
@@ -212,15 +214,17 @@ class TinyViT(nn.Module):
 
         # TODO: implement a strategy to select the right mlp version for your experiment
 
-        self.blocks = nn.ModuleList([
-            TransformerEncoderBlock(
-                d_model=d_model,
-                n_heads=n_heads,
-                mlp=..., # TODO: Feed your mlp to the encoder blocks
-                dropout=dropout,
-            )
-            for _ in range(n_layers)
-        ])
+        self.blocks = nn.ModuleList(
+            [
+                TransformerEncoderBlock(
+                    d_model=d_model,
+                    n_heads=n_heads,
+                    mlp=...,  # TODO: Feed your mlp to the encoder blocks
+                    dropout=dropout,
+                )
+                for _ in range(n_layers)
+            ]
+        )
 
         # TODO: Add a head to project to the amount of output classes you have
 
@@ -250,13 +254,14 @@ def train_one_run(
     cfg: TrainConfig,
 ) -> dict:
     model.to(cfg.device)
-    opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
+    opt = torch.optim.AdamW(
+        model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay
+    )
 
     train_losses: list[float] = []
     test_accs: list[float] = []
 
     for epoch in range(cfg.epochs):
-
         # Train loop
         model.train()
         for i, (xb, yb) in enumerate(train_loader):
@@ -264,7 +269,7 @@ def train_one_run(
             yb = yb.to(cfg.device)
 
             logits = model(xb)
-            loss = ... # TODO: Your criterion
+            loss = ...  # TODO: Your criterion
 
             opt.zero_grad()
             loss.backward()
@@ -285,7 +290,9 @@ def train_one_run(
                 total += yb.numel()
 
         test_accs.append(correct / total)
-        print(f"[{mlp_kind}] epoch {epoch+1}/{cfg.epochs} | test acc: {test_accs[-1]:.4f}")
+        print(
+            f"[{mlp_kind}] epoch {epoch + 1}/{cfg.epochs} | test acc: {test_accs[-1]:.4f}"
+        )
 
     return {
         # TODO: Return your metrics that you think will support your claim for this experiment
@@ -293,15 +300,21 @@ def train_one_run(
 
 
 # %%
-cfg = TrainConfig(seed=0, batch_size=128, epochs=5, lr=3e-4, weight_decay=0.01, device="cpu")
+cfg = TrainConfig(
+    seed=0, batch_size=128, epochs=5, lr=3e-4, weight_decay=0.01, device="cpu"
+)
 
 tfm = transforms.Compose([transforms.ToTensor()])
 
 train_ds = datasets.MNIST(root="./data", train=True, download=True, transform=tfm)
 test_ds = datasets.MNIST(root="./data", train=False, download=True, transform=tfm)
 
-train_loader = DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True, num_workers=0)
-test_loader = DataLoader(test_ds, batch_size=cfg.batch_size, shuffle=False, num_workers=0)
+train_loader = DataLoader(
+    train_ds, batch_size=cfg.batch_size, shuffle=True, num_workers=0
+)
+test_loader = DataLoader(
+    test_ds, batch_size=cfg.batch_size, shuffle=False, num_workers=0
+)
 
 # Tiny model example. TODO: You're welcome to experiment with these parameters
 patch_size = 4
@@ -311,7 +324,7 @@ n_layers = 2
 d_ff = 256
 dropout = 0.1
 
-runs = [] # TODO: Name your runs
+runs = []  # TODO: Name your runs
 results = []
 
 for kind in runs:
@@ -325,6 +338,6 @@ for kind in runs:
         mlp_kind=kind,
     )
     # TODO: print anything you might want here
-    print(f"\nRun: {kind} | " )
+    print(f"\nRun: {kind} | ")
     out = train_one_run(kind, model, train_loader, test_loader, cfg)
     results.append(out)

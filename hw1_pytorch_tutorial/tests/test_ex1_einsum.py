@@ -5,7 +5,6 @@ mix-up cannot pass by coincidence.
 """
 
 import torch
-
 from shapes import B, D, Dh, H, T
 
 from ex1 import (
@@ -32,7 +31,9 @@ class TestEinsumLinear:
         W = torch.randn(D, H)
 
         combined = einsum_linear_btd_dh_to_bth(x1 + 2.0 * x2, W)
-        expected = einsum_linear_btd_dh_to_bth(x1, W) + 2.0 * einsum_linear_btd_dh_to_bth(x2, W)
+        expected = einsum_linear_btd_dh_to_bth(
+            x1, W
+        ) + 2.0 * einsum_linear_btd_dh_to_bth(x2, W)
 
         assert torch.allclose(combined, expected, atol=1e-5)
 

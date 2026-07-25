@@ -32,14 +32,13 @@ from __future__ import annotations
 import torch
 from torch import nn
 
-
 # %% [markdown]
 # ## Basic layers
 #
 # In this section you’ll implement a few core layers that appear everywhere:
 #
 # ### `Linear`
-# A fully-connected layer that follows nn.Linear conventions:  
+# A fully-connected layer that follows nn.Linear conventions:
 # `y = x @ Wᵀ + b`
 #
 # Important details:
@@ -66,6 +65,7 @@ from torch import nn
 # - You may use standard tensor ops that you learned before (matmul, sum, mean, rsqrt, indexing, etc.).
 # - Use a parameter initialization method of your choice. We recommend something like Xavier-uniform.
 #
+
 
 # %%
 class Linear(nn.Module):
@@ -125,7 +125,7 @@ class Dropout(nn.Module):
 # - normalize: `(x - mean) / sqrt(var + eps)`
 # - apply learnable per-feature scale and shift (`weight`, `bias`)
 #
-# **In this exercise, assume `elementwise_affine=True` (always include `weight` and `bias`).**  
+# **In this exercise, assume `elementwise_affine=True` (always include `weight` and `bias`).**
 # `weight` and `bias` each have shape `(D,)`.
 #
 # LayerNorm is widely used in transformers because it does not depend on batch statistics.
@@ -138,6 +138,7 @@ class Dropout(nn.Module):
 #
 # RMSNorm is popular in modern LLMs because it's faster.
 #
+
 
 # %%
 class LayerNorm(nn.Module):
@@ -199,6 +200,7 @@ class RMSNorm(nn.Module):
 # - output is `x + fn(x)`
 #
 # They improve gradient flow and allow training deeper networks more reliably.
+
 
 # %%
 class MLP(nn.Module):
@@ -265,7 +267,7 @@ class Residual(nn.Module):
 # data → model → logits → loss → gradients → parameter update.
 #
 # ### Model notes
-# - We want you to combine the MLP we implemented above with the classification head we define below into one model 
+# - We want you to combine the MLP we implemented above with the classification head we define below into one model
 #
 # ### MNIST notes
 # - MNIST images are `28×28` grayscale.
@@ -273,7 +275,7 @@ class Residual(nn.Module):
 # - For an MLP classifier, we flatten to a vector of length `784`.
 #
 # ## Deliverables
-# - Include a plot of your train loss curve in the video submission as well as a final accuracy. 
+# - Include a plot of your train loss curve in the video submission as well as a final accuracy.
 # - **NOTE** Here we don't grade on model performance but we expect you to achieve at least 70% accuracy to confirm a correct model implementation.
 
 # %%
@@ -284,9 +286,10 @@ from torchvision import datasets, transforms
 transform = transforms.ToTensor()  # -> float32 in [0,1], shape (1, 28, 28)
 
 train_ds = datasets.MNIST(root="data", train=True, download=True, transform=transform)
-test_ds  = datasets.MNIST(root="data", train=False, download=True, transform=transform)
+test_ds = datasets.MNIST(root="data", train=False, download=True, transform=transform)
 
 # TODO: define the dataloaders
+
 
 # %%
 def cross_entropy_from_logits(

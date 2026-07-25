@@ -29,10 +29,11 @@
 
 # %%
 from __future__ import annotations
+
 from dataclasses import dataclass
+
 import torch
 from torch import nn
-
 
 # %% [markdown]
 # ## Autograd fundamentals
@@ -62,6 +63,7 @@ from torch import nn
 # - `train()` enables training behavior (e.g. dropout active, batchnorm updates running stats).
 # - `eval()` enables inference behavior (e.g. dropout off, batchnorm uses running stats).
 
+
 # %%
 def grad_with_autograd_grad(x: torch.Tensor) -> torch.Tensor:
     """
@@ -78,6 +80,7 @@ def grad_with_autograd_grad(x: torch.Tensor) -> torch.Tensor:
 
 # %%
 
+
 def grad_with_backward(x: torch.Tensor) -> torch.Tensor:
     """
     Compute gradient of f(x) = sum(x^2) using .backward().
@@ -92,7 +95,8 @@ def grad_with_backward(x: torch.Tensor) -> torch.Tensor:
 
 # %%
 def grad_wrt_multiple_inputs(
-    a: torch.Tensor, b: torch.Tensor,
+    a: torch.Tensor,
+    b: torch.Tensor,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Compute gradients w.r.t. multiple inputs. The function is f(a, b) = sum(a^2 + ab).
@@ -195,6 +199,7 @@ class NextTokenDataset(Dataset):
 
 # %%
 
+
 class RandomCropSequenceDataset(Dataset):
     """
     Sequence dataset that returns random crops of fixed length.
@@ -222,6 +227,7 @@ class RandomCropSequenceDataset(Dataset):
     def __getitem__(self, idx: int) -> torch.Tensor:
         # TODO: implement
         raise NotImplementedError
+
 
 # %%
 
@@ -315,6 +321,7 @@ def make_dataloader(
 # - This update is **in-place** (mutates `p`).
 # - Gradients should not be modified.
 # - State tensors must match parameter shape/device/dtype.
+
 
 # %%
 @dataclass
@@ -420,6 +427,7 @@ def adamw_step_many_(
 # In this exercise you’ll implement a single MSE training step using a standard PyTorch optimizer.
 # Return a Python float loss value.
 
+
 # %%
 def train_step_mse(
     model: nn.Module,
@@ -431,7 +439,6 @@ def train_step_mse(
     """
     # TODO: implement
     raise NotImplementedError
-
 
 
 # %% [markdown]
@@ -455,6 +462,7 @@ def train_step_mse(
 #
 # In this section you’ll implement Xavier uniform and Kaiming uniform and use them to initialize `nn.Linear`.
 # We also always zero the bias unless explicitly told otherwise.
+
 
 # %%
 def fan_in_fan_out(weight: torch.Tensor) -> tuple[int, int]:

@@ -18,6 +18,7 @@ from ex1 import (
     stable_softmax,
 )
 
+
 class TestStableSoftmax:
     def test_output_is_a_distribution_along_dim(self):
         x = torch.randn(B, T, H)
@@ -154,5 +155,7 @@ class TestApplyCausalMask:
         probs = torch.softmax(apply_causal_mask(logits), dim=-1)
 
         causal = torch.ones(T, T, dtype=torch.bool).triu(diagonal=1)
-        assert torch.allclose(probs[..., causal], torch.zeros_like(probs[..., causal]), atol=1e-6)
+        assert torch.allclose(
+            probs[..., causal], torch.zeros_like(probs[..., causal]), atol=1e-6
+        )
         assert torch.allclose(probs.sum(dim=-1), torch.ones(B, H, T), atol=1e-6)

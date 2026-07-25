@@ -45,9 +45,7 @@ class TestMeanOverDim:
         centered = x - m
 
         assert m.shape == (2, 1, 3)
-        assert torch.allclose(
-            centered.mean(dim=1), torch.zeros(2, 3), atol=1e-6
-        )
+        assert torch.allclose(centered.mean(dim=1), torch.zeros(2, 3), atol=1e-6)
 
 
 class TestMaxOverDim:

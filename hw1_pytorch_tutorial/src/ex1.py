@@ -13,10 +13,10 @@
 # ---
 
 # %% [markdown]
-# # Exercise 1: Tensor basics 
+# # Exercise 1: Tensor basics
 # In this exercise you will learn the basics of tensor creation, manipulation, indexing, broadcasting, vectorization, einsum, and attention masking fundamentals. These basics are important for understanding any complex implementation later on so make sure you understand them well.
 #
-# **To complete this exercise fill in all TODOs in the functions below.** 
+# **To complete this exercise fill in all TODOs in the functions below.**
 #
 # Make sure to check the output of your function and whether or not it fulfills the requirements outlined in the function definition. Do NOT change the function signature or name since we will be running checks on your functions during grading.
 #
@@ -54,13 +54,17 @@
 
 # %%
 from collections.abc import Sequence
+
 import torch
 
 
 # %%
-def make_tensor(data, dtype: torch.dtype | None = None, device: torch.device | str | None = None) -> torch.Tensor:
-    """ Create a tensor from Python data (list/tuple/nested lists). """
+def make_tensor(
+    data, dtype: torch.dtype | None = None, device: torch.device | str | None = None
+) -> torch.Tensor:
+    """Create a tensor from Python data (list/tuple/nested lists)."""
     return torch.tensor(data, dtype=dtype, device=device)
+
 
 x = make_tensor([[1, 2], [3, 4]], dtype=torch.float32)
 
@@ -68,9 +72,14 @@ x
 
 
 # %%
-def make_zeros(shape: Sequence[int], dtype: torch.dtype | None = None, device: torch.device | str | None = None) -> torch.Tensor:
+def make_zeros(
+    shape: Sequence[int],
+    dtype: torch.dtype | None = None,
+    device: torch.device | str | None = None,
+) -> torch.Tensor:
     """Create a tensor filled with zeros."""
     return torch.zeros(shape, dtype=dtype, device=device)
+
 
 z = make_zeros((2, 3), dtype=torch.float64)
 
@@ -79,8 +88,9 @@ z
 
 # %%
 def make_ones_like(x: torch.Tensor) -> torch.Tensor:
-    """Create a tensor of ones with the same shape, dtype, and device as x. """
+    """Create a tensor of ones with the same shape, dtype, and device as x."""
     return torch.ones_like(x)
+
 
 base = torch.randn(2, 3, dtype=torch.float32)
 ones = make_ones_like(base)
@@ -89,9 +99,16 @@ ones
 
 
 # %%
-def make_arange(start: int, end: int, step: int = 1, dtype: torch.dtype | None = None, device: torch.device | str | None = None) -> torch.Tensor:
+def make_arange(
+    start: int,
+    end: int,
+    step: int = 1,
+    dtype: torch.dtype | None = None,
+    device: torch.device | str | None = None,
+) -> torch.Tensor:
     """Create a 1D tensor containing values [start, start+step, ..., < end]."""
     return torch.arange(start, end, step, dtype=dtype, device=device)
+
 
 ar = make_arange(0, 5, 2, dtype=torch.int64)
 
@@ -99,20 +116,34 @@ ar
 
 
 # %%
-def make_linspace(start: float, end: float, steps: int, dtype: torch.dtype | None = None, device: torch.device | str | None = None) -> torch.Tensor:
+def make_linspace(
+    start: float,
+    end: float,
+    steps: int,
+    dtype: torch.dtype | None = None,
+    device: torch.device | str | None = None,
+) -> torch.Tensor:
     """Create a 1D tensor with evenly spaced values from start to end (inclusive)."""
     return torch.linspace(start, end, steps, dtype=dtype, device=device)
+
 
 ls = make_linspace(0.0, 1.0, steps=5, dtype=torch.float32)
 
 # ls
 
+
 # %%
-def make_randn(shape: Sequence[int], seed: int | None = None, dtype: torch.dtype | None = None, device: torch.device | str | None = None) -> torch.Tensor:
+def make_randn(
+    shape: Sequence[int],
+    seed: int | None = None,
+    dtype: torch.dtype | None = None,
+    device: torch.device | str | None = None,
+) -> torch.Tensor:
     """Create a tensor filled with values from a standard normal distribution."""
     if seed is not None:
         torch.manual_seed(seed)
     return torch.randn(shape, dtype=dtype, device=device)
+
 
 a = make_randn((2, 3), seed=123, dtype=torch.float32)
 
@@ -120,18 +151,23 @@ a
 
 
 # %%
-def cast_dtype_and_move(x: torch.Tensor, device: torch.device, dtype: torch.dtype) -> torch.Tensor:
+def cast_dtype_and_move(
+    x: torch.Tensor, device: torch.device, dtype: torch.dtype
+) -> torch.Tensor:
     """Convert tensor dtype and move to device."""
     return x.to(device=device, dtype=dtype)
 
-casted = cast_dtype_and_move(torch.tensor([1, 2, 3]), torch.device("cpu"), torch.float32)
+
+casted = cast_dtype_and_move(
+    torch.tensor([1, 2, 3]), torch.device("cpu"), torch.float32
+)
 
 casted.device
 
 
 # %% [markdown]
 # ## Shape manipulation
-# Now that we covered the basic tensor creation schemes, we want to focus on shape manipulation. Understanding the difference between these mechanisms is key for building larger systems and many people still get it wrong. 
+# Now that we covered the basic tensor creation schemes, we want to focus on shape manipulation. Understanding the difference between these mechanisms is key for building larger systems and many people still get it wrong.
 # The core ideas to understand are:
 # - **Contiguous tensors** store data in a single, row-major memory layout.
 # - Many ops (especially slicing like `x[:, ::2]`, `transpose`, `permute`) often create **non-contiguous** tensors (no copy but different strides).
@@ -141,10 +177,12 @@ casted.device
 #
 # If you *need* a view after reordering dims: call `x = x.contiguous()` first (this makes a contiguous copy).
 
+
 # %%
 def reshape_tensor(x: torch.Tensor, new_shape: Sequence[int]) -> torch.Tensor:
     """Reshape tensor to new_shape (may return a view or a copy)."""
     return x.reshape(new_shape)
+
 
 x = torch.arange(6)
 y = reshape_tensor(x, (2, 3))
@@ -155,6 +193,7 @@ def view_tensor(x: torch.Tensor, new_shape: Sequence[int]) -> torch.Tensor:
     """View tensor as new_shape (requires contiguous memory and doesn't allocate new memory for the tensor data)."""
     return x.contiguous().view(new_shape)
 
+
 y_view = view_tensor(x, (2, 3))
 
 
@@ -162,6 +201,7 @@ y_view = view_tensor(x, (2, 3))
 def flatten_from_dim(x: torch.Tensor, start_dim: int = 0) -> torch.Tensor:
     """Flatten a tensor starting from start_dim into a single dimension."""
     return x.flatten(start_dim=start_dim)
+
 
 x2 = torch.randn(2, 3, 4)
 flat = flatten_from_dim(x2, start_dim=1)
@@ -175,6 +215,7 @@ def add_singleton_dim(x: torch.Tensor, dim: int) -> torch.Tensor:
     """Insert a size-1 dimension at position dim."""
     return torch.unsqueeze(x, dim=dim)
 
+
 x3 = torch.randn(5, 7)
 x3s = add_singleton_dim(x3, dim=1)
 
@@ -184,6 +225,7 @@ def remove_singleton_dims(x: torch.Tensor, dim: int | None = None) -> torch.Tens
     """Remove size-1 dimensions."""
     return x.squeeze(dim=dim) if dim else x.squeeze()
 
+
 x4 = torch.randn(2, 1, 3)
 x4s = remove_singleton_dims(x4)
 
@@ -192,6 +234,7 @@ x4s = remove_singleton_dims(x4)
 def transpose_last_two(x: torch.Tensor) -> torch.Tensor:
     """Swap the last two dimensions of x."""
     return x.transpose(-1, -2)
+
 
 x6 = torch.randn(2, 3, 4)
 x6t = transpose_last_two(x6)
@@ -203,6 +246,7 @@ print(x6t.shape)
 def permute_bhwc_to_bchw(x: torch.Tensor) -> torch.Tensor:
     """Convert (B, H, W, C) tensor into (B, C, H, W)."""
     return x.permute(0, 3, 1, 2)
+
 
 x7 = torch.randn(8, 32, 32, 3)
 x7p = permute_bhwc_to_bchw(x7)
@@ -216,21 +260,24 @@ def make_contiguous(x: torch.Tensor) -> torch.Tensor:
     """Check if tensor is contiguous and if not make contiguous."""
     return x.contiguous() if not x.is_contiguous() else x
 
+
 x8 = torch.randn(4, 6)[:, ::2]
 x8c = make_contiguous(x8)
 
 
 # %% [markdown]
 # ## Indexing
-# Now that we know how to create tensors and manipulate them we need to understand how we can extract certain components from them using indexing. 
+# Now that we know how to create tensors and manipulate them we need to understand how we can extract certain components from them using indexing.
 # - Basic slicing (`x[a:b]`) returns a view when possible.
 # - “Fancy” indexing (lists/tensors of indices) usually allocates a new tensor.
 # - In-place vs out-of-place matters: if a function says “return a copy, leave the input unchanged”, you need `clone()`.
+
 
 # %%
 def slice_rows(x: torch.Tensor, start: int, end: int) -> torch.Tensor:
     """Slice rows in a 2D tensor: x[start:end, :]."""
     return x[start:end, :]
+
 
 x = torch.arange(12).reshape(4, 3)
 rows = slice_rows(x, 1, 3)
@@ -243,6 +290,7 @@ def select_columns(x: torch.Tensor, cols: Sequence[int]) -> torch.Tensor:
     """Select specific columns from a 2D tensor."""
     return x[:, cols]
 
+
 cols = select_columns(x, [0, 2])
 
 cols
@@ -253,18 +301,21 @@ def get_diagonal(x: torch.Tensor) -> torch.Tensor:
     """Get the diagonal of a 2D tensor."""
     return x.diag()
 
+
 d = get_diagonal(torch.tensor([[1, 2], [3, 4]]))
 
 d
 
 
 # %%
-def set_subtensor(x: torch.Tensor, row_idx: int, col_idx: int, value: float) -> torch.Tensor:
+def set_subtensor(
+    x: torch.Tensor, row_idx: int, col_idx: int, value: float
+) -> torch.Tensor:
     """Return a copy of x where x[row_idx, col_idx] is set to value."""
     result = x.clone()
     result[row_idx, col_idx] = value
     return result
-    
+
 
 base = torch.zeros(2, 2)
 out = set_subtensor(base, 0, 1, 5.0)
@@ -276,6 +327,7 @@ out
 def gather_rows(x: torch.Tensor, row_indices: torch.Tensor) -> torch.Tensor:
     """Gather (concat) rows from x using row_indices."""
     return x.gather(0, row_indices.unsqueeze(1).expand(-1, x.size(1)))
+
 
 x2 = torch.tensor([[10, 11], [20, 21], [30, 31]])
 idx = torch.tensor([2, 0])
@@ -320,10 +372,12 @@ print(gathered)
 # - If `m = x.mean(dim=1)` has shape `(B, D)`, then `x - m` **fails** (shapes `(B,T,D)` and `(B,D)` don't align).
 # - If `m = x.mean(dim=1, keepdim=True)` has shape `(B,1,D)`, then `x - m` **works** via broadcasting.
 
+
 # %%
 def sum_over_dim(x: torch.Tensor, dim: int, keepdim: bool = False) -> torch.Tensor:
     """Sum tensor values along dimension dim."""
     return x.sum(dim=dim, keepdim=keepdim)
+
 
 x = torch.ones(2, 3)
 y = sum_over_dim(x, dim=1)
@@ -337,6 +391,7 @@ def mean_over_dim(x: torch.Tensor, dim: int, keepdim: bool = False) -> torch.Ten
     """Mean along dimension dim."""
     return x.mean(dim=dim, keepdim=keepdim)
 
+
 x2 = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
 y2 = mean_over_dim(x2, dim=0)
 
@@ -345,6 +400,7 @@ y2 = mean_over_dim(x2, dim=0)
 def max_over_dim(x: torch.Tensor, dim: int) -> tuple[torch.Tensor, torch.Tensor]:
     """Max values and argmax indices along dimension dim."""
     return torch.max(x, dim=dim)
+
 
 x3 = torch.tensor([[1.0, 5.0], [3.0, 2.0]])
 values, idx = max_over_dim(x3, dim=1)
@@ -359,6 +415,7 @@ def argmax_over_dim(x: torch.Tensor, dim: int) -> torch.Tensor:
     """Argmax indices along dimension dim."""
     return x.argmax(dim=dim)
 
+
 idx2 = argmax_over_dim(x3, dim=1)
 
 
@@ -366,6 +423,7 @@ idx2 = argmax_over_dim(x3, dim=1)
 def broadcast_add_vector(x: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
     """Add a vector v to each row of a 2D tensor x using broadcasting."""
     return x + v
+
 
 x4 = torch.zeros(3, 2)
 v = torch.tensor([10.0, 20.0])
@@ -392,7 +450,7 @@ print(y4)
 # This has two important implications:
 #
 # 1) `expand` only works when expanding a **size-1 dimension** (broadcasting a singleton).
-# 2) The expanded tensor may have **many positions pointing to the same memory**.  
+# 2) The expanded tensor may have **many positions pointing to the same memory**.
 #    Modifying the expanded tensor can therefore produce surprising results (multiple rows change).
 #
 # Rule of thumb:
@@ -401,6 +459,7 @@ print(y4)
 #
 #
 # NOTE: We implore you to write your own quick checks from now on for calling the functions and checking their output. As before you are still required to fill in the TODOs in each function.
+
 
 # %%
 def concat_tensors(tensors: Sequence[torch.Tensor], dim: int = 0) -> torch.Tensor:
@@ -439,10 +498,12 @@ def where_select(mask: torch.Tensor, a: torch.Tensor, b: torch.Tensor) -> torch.
 
 
 # %%
-def one_hot(indices: torch.Tensor, num_classes: int, dtype: torch.dtype | None = None) -> torch.Tensor:
+def one_hot(
+    indices: torch.Tensor, num_classes: int, dtype: torch.dtype | None = None
+) -> torch.Tensor:
     """
     Create one-hot encodings.
-    Output is a tensor of the same shape as indices with an added dimension of size num_classes at the end, 
+    Output is a tensor of the same shape as indices with an added dimension of size num_classes at the end,
     where the value along that dimension is 1 if it matches the index and 0 otherwise.
 
     Shapes:
@@ -456,6 +517,7 @@ def one_hot(indices: torch.Tensor, num_classes: int, dtype: torch.dtype | None =
     """
     encoding = torch.zeros(*indices.shape, num_classes, dtype=dtype)
     return encoding.scatter(-1, indices.unsqueeze(-1), 1)
+
 
 example_indices = torch.tensor([0, 2, 1])
 num_classes = 3
@@ -482,7 +544,6 @@ def scatter_add_1d(
     """
     out = torch.zeros(size, dtype=values.dtype, device=values.device)
     return out.scatter_add(0, indices, values)
-    
 
 
 # %%
@@ -493,7 +554,7 @@ def batched_token_histogram(tokens: torch.Tensor, vocab_size: int) -> torch.Tens
     Shapes:
     - tokens: (B, T) int64
     Return:
-    - counts: (B, vocab_size) where counts[b, v] = number of times token v appears in tokens[b] 
+    - counts: (B, vocab_size) where counts[b, v] = number of times token v appears in tokens[b]
 
     Requirements:
     - No Python loops over B or T.
@@ -516,7 +577,9 @@ def masked_mean(x: torch.Tensor, mask: torch.Tensor, dim: int) -> torch.Tensor:
     - Avoid division by zero: if all mask are False along `dim`, define mean as 0.
     """
     masked = x * mask
-    return masked.sum(dim=dim) / mask.sum(dim=dim).clamp(min=1)  # Avoid division by zero
+    return masked.sum(dim=dim) / mask.sum(dim=dim).clamp(
+        min=1
+    )  # Avoid division by zero
 
 
 example_x = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
@@ -564,6 +627,7 @@ mean_result
 # - applying attention weights (`softmax(scores) @ V`)
 #
 # NOTE: For these exercises you are required to use `torch.einsum` not `matmul` (we check). You are also not required to understand the attention mechanism at this point and the exercises are sovable without. It is good however, to remember the implementations in this exercise for future implementations.
+
 
 # %%
 def einsum_linear_btd_dh_to_bth(x: torch.Tensor, W: torch.Tensor) -> torch.Tensor:
@@ -625,12 +689,13 @@ def einsum_apply_attention(weights: torch.Tensor, v: torch.Tensor) -> torch.Tens
 
 # %% [markdown]
 # ## Attention Fundamentals
-# This exercise introduces some building blocks of the attention mechanism which we will encounter extensively throughout the course. It's not yet required for you to fully understand the mechanism to implement the exercises. However, it's good to remember these building blocks for the future. 
+# This exercise introduces some building blocks of the attention mechanism which we will encounter extensively throughout the course. It's not yet required for you to fully understand the mechanism to implement the exercises. However, it's good to remember these building blocks for the future.
 #
 # To complete the exercises you should familiarize yourself with these topics:
 # - Stable softmax read: https://jaykmody.com/blog/stable-softmax/
 # - Masking: typically this means setting masked logits to -inf *before* softmax.
 # - For attention: causal masks are upper-triangular (no attending to the future).
+
 
 # %%
 def stable_softmax(x: torch.Tensor, dim: int = -1) -> torch.Tensor:
@@ -647,10 +712,12 @@ def stable_softmax(x: torch.Tensor, dim: int = -1) -> torch.Tensor:
 
 
 # %%
-def masked_fill_tensor(x: torch.Tensor, mask: torch.Tensor, value: float) -> torch.Tensor:
+def masked_fill_tensor(
+    x: torch.Tensor, mask: torch.Tensor, value: float
+) -> torch.Tensor:
     """
     Return a copy of x where positions with mask == True are replaced by `value`.
-    
+
     Requirements:
     - mask must be broadcastable to x.
     - do NOT modify x in-place.
@@ -677,7 +744,6 @@ def masked_softmax(x: torch.Tensor, mask: torch.Tensor, dim: int = -1) -> torch.
     return stable_softmax(x_hat, dim=dim)
 
 
-
 # %%
 def make_causal_mask(T: int, device: torch.device | str | None = None) -> torch.Tensor:
     """
@@ -699,6 +765,7 @@ def make_causal_mask(T: int, device: torch.device | str | None = None) -> torch.
          [F, F, F, F]]
     """
     return ~torch.tril(torch.ones(T, T, dtype=torch.bool, device=device))
+
 
 # %%
 def apply_causal_mask(attn_logits: torch.Tensor, value: float = -1e9) -> torch.Tensor:

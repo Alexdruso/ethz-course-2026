@@ -99,9 +99,7 @@ class TestCumsumOverDim:
 
         out = cumsum_over_dim(x, dim=0)
 
-        assert torch.equal(
-            out, torch.tensor([[1.0, 2.0], [4.0, 6.0], [9.0, 12.0]])
-        )
+        assert torch.equal(out, torch.tensor([[1.0, 2.0], [4.0, 6.0], [9.0, 12.0]]))
 
     def test_last_entry_equals_the_total_sum(self):
         x = torch.randn(2, 4, 3)
