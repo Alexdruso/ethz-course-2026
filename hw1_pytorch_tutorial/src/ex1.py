@@ -642,9 +642,7 @@ def einsum_qk_scores(q: torch.Tensor, k: torch.Tensor) -> torch.Tensor:
     Return:
     - scores: (B, H, T, T) where scores[b,h,i,j] = dot(q[b,h,i], k[b,h,j])
     """
-    transposed_k = torch.einsum("bhtd -> bhdt", k)
-
-    return torch.einsum("bhti, bhjt -> bhij", q, transposed_k)
+    return torch.einsum("bhtd, bhgd -> bhtg", q, k)
 
 
 # %%
