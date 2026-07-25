@@ -641,8 +641,9 @@ def stable_softmax(x: torch.Tensor, dim: int = -1) -> torch.Tensor:
     - Must not overflow for large values in x.
     - Output sums to 1 along `dim`.
     """
-    # TODO: implement
-    raise NotImplementedError
+    x_max = x.max(dim=dim, keepdim=True).values
+    x_exp = torch.exp(x - x_max)
+    return x_exp / x_exp.sum(dim=dim, keepdim=True)
 
 
 # %%
@@ -654,8 +655,7 @@ def masked_fill_tensor(x: torch.Tensor, mask: torch.Tensor, value: float) -> tor
     - mask must be broadcastable to x.
     - do NOT modify x in-place.
     """
-    # TODO: implement
-    raise NotImplementedError
+    return torch.where(mask, torch.full_like(x, value), x)
 
 
 # %%
@@ -673,8 +673,8 @@ def masked_softmax(x: torch.Tensor, mask: torch.Tensor, dim: int = -1) -> torch.
     - If all entries are masked along `dim`, return all zeros along `dim`.
     - You may reuse functions you implemented above.
     """
-    # TODO: implement using masked_fill_tensor + stable_softmax
-    raise NotImplementedError
+    x_hat = masked_fill_tensor(x, mask, -torch.inf)
+    return stable_softmax(x_hat, dim=dim)
 
 
 
@@ -698,9 +698,7 @@ def make_causal_mask(T: int, device: torch.device | str | None = None) -> torch.
          [F, F, F, T],
          [F, F, F, F]]
     """
-    # TODO: implement
-    raise NotImplementedError
-
+    return ~torch.tril(torch.ones(T, T, dtype=torch.bool, device=device))
 
 # %%
 def apply_causal_mask(attn_logits: torch.Tensor, value: float = -1e9) -> torch.Tensor:
@@ -718,8 +716,5 @@ def apply_causal_mask(attn_logits: torch.Tensor, value: float = -1e9) -> torch.T
     - Broadcast it across leading dims.
     - You may reuse functions declared above.
     """
-    # TODO: implement using make_causal_mask + masked_fill_tensor
-    raise NotImplementedError
-
-# %% [markdown]
-#
+    causal_mask = make_causal_mask(attn_logits.shape[-1], device=attn_logits.device)
+    return masked_softmax(attn_logits, causal_mask)
