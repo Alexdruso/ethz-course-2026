@@ -209,7 +209,7 @@ x3s = add_singleton_dim(x3, dim=1)
 # %%
 def remove_singleton_dims(x: torch.Tensor, dim: int | None = None) -> torch.Tensor:
     """Remove size-1 dimensions."""
-    return x.squeeze(dim=dim) if dim else x.squeeze()
+    return x.squeeze(dim=dim) if dim is not None else x.squeeze()
 
 
 x4 = torch.randn(2, 1, 3)
