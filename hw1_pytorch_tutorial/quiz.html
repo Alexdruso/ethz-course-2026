@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HW1 PyTorch Tutorial — Self-Assessment Quiz</title>
+<style>
+  :root{
+    --bg:#fbfbfa; --panel:#ffffff; --ink:#1c1c1a; --muted:#6b6b66;
+    --line:#e4e4e0; --accent:#2f6f4e; --accent-soft:#e8f2ec;
+    --ok:#1f7a4d; --ok-soft:#e6f4ec; --bad:#a8322d; --bad-soft:#fbeceb;
+    --code:#f3f3f0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#16171a; --panel:#1d1e22; --ink:#e9e9e6; --muted:#9a9a94;
+      --line:#2e3036; --accent:#7fbf9b; --accent-soft:#22302a;
+      --ok:#7fbf9b; --ok-soft:#1e2f26; --bad:#e08b85; --bad-soft:#33211f;
+      --code:#25262b;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  .wrap{max-width:860px; margin:0 auto; padding:2.5rem 1.25rem 6rem}
+  header h1{font-size:1.9rem; line-height:1.2; margin:0 0 .4rem}
+  header p{color:var(--muted); margin:.2rem 0}
+  .meta{font-size:.9rem}
+
+  .controls{
+    display:flex; flex-wrap:wrap; gap:.5rem; align-items:center;
+    margin:1.5rem 0 .5rem;
+  }
+  button{
+    font:inherit; font-size:.9rem; padding:.45rem .9rem; border-radius:999px;
+    border:1px solid var(--line); background:var(--panel); color:var(--ink); cursor:pointer;
+  }
+  button:hover{border-color:var(--accent)}
+  button.active{background:var(--accent-soft); border-color:var(--accent); color:var(--ink)}
+
+  .scorebar{
+    position:sticky; top:0; z-index:5; background:var(--bg);
+    padding:.75rem 0; border-bottom:1px solid var(--line); margin-bottom:1.5rem;
+    display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;
+  }
+  .score{font-variant-numeric:tabular-nums; font-size:.95rem}
+  .score b{font-size:1.15rem}
+  .track{flex:1; min-width:140px; height:6px; background:var(--line); border-radius:3px; overflow:hidden}
+  .fill{height:100%; width:0; background:var(--accent); transition:width .25s ease}
+
+  section{margin:2.5rem 0 0}
+  section > h2{
+    font-size:1.15rem; margin:0 0 .25rem; padding-bottom:.4rem; border-bottom:2px solid var(--accent);
+    display:inline-block;
+  }
+  section > .sub{color:var(--muted); font-size:.9rem; margin:.3rem 0 1rem}
+
+  .q{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:1.1rem 1.2rem; margin:0 0 1rem;
+  }
+  .q .num{color:var(--muted); font-size:.8rem; letter-spacing:.06em; text-transform:uppercase}
+  .q .stem{margin:.35rem 0 .75rem}
+  .q .stem code{background:var(--code); padding:.1em .35em; border-radius:4px; font-size:.9em}
+  pre{
+    background:var(--code); border-radius:8px; padding:.75rem .9rem; margin:.5rem 0 .9rem;
+    overflow-x:auto; font-size:.85rem; line-height:1.5;
+  }
+  pre code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+  .opts{display:flex; flex-direction:column; gap:.4rem}
+  .opt{
+    display:flex; gap:.6rem; align-items:flex-start; text-align:left; width:100%;
+    padding:.6rem .75rem; border-radius:8px; border:1px solid var(--line);
+    background:transparent; cursor:pointer; font-size:.95rem; line-height:1.45;
+  }
+  .opt:hover:not(:disabled){border-color:var(--accent)}
+  .opt:disabled{cursor:default}
+  .opt .key{
+    flex:none; width:1.5rem; height:1.5rem; border-radius:50%; border:1px solid var(--line);
+    display:grid; place-items:center; font-size:.75rem; color:var(--muted);
+  }
+  .opt code{background:var(--code); padding:.1em .3em; border-radius:4px; font-size:.9em}
+  .opt.correct{background:var(--ok-soft); border-color:var(--ok)}
+  .opt.correct .key{border-color:var(--ok); color:var(--ok)}
+  .opt.wrong{background:var(--bad-soft); border-color:var(--bad)}
+  .opt.wrong .key{border-color:var(--bad); color:var(--bad)}
+
+  .explain{
+    margin:.85rem 0 0; padding:.7rem .85rem; border-left:3px solid var(--accent);
+    background:var(--accent-soft); border-radius:0 8px 8px 0; font-size:.9rem;
+  }
+  .explain code{background:rgba(127,127,127,.18); padding:.1em .3em; border-radius:4px}
+  .explain .tag{display:block; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:.25rem}
+  .hidden{display:none}
+  footer{margin-top:3rem; color:var(--muted); font-size:.85rem; border-top:1px solid var(--line); padding-top:1rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Homework 1 — PyTorch Tutorial</h1>
+  <p>Self-assessment quiz covering every topic in <code>ex1</code>–<code>ex4</code>: tensor basics, PyTorch core, neural networks, and ViT × GLU.</p>
+  <p class="meta">Pick an answer to lock it in and reveal the explanation. Nothing is submitted anywhere — this file runs entirely offline.</p>
+</header>
+
+<div class="scorebar">
+  <div class="score">Score <b><span id="right">0</span>/<span id="answered">0</span></b> <span id="pct" style="color:var(--muted)"></span></div>
+  <div class="track"><div class="fill" id="fill"></div></div>
+  <div class="score" style="color:var(--muted)"><span id="total">0</span> questions</div>
+</div>
+
+<div class="controls" id="filters"></div>
+<div class="controls"><button id="reset">Reset quiz</button></div>
+
+<main id="quiz"></main>
+
+<footer>
+  Topics are drawn from <code>src/ex1.ipynb</code> (tensors, broadcasting, einsum, attention masking),
+  <code>src/ex2.ipynb</code> (autograd, dataloading, AdamW, init), <code>src/ex3.ipynb</code> (layers, norms, MLPs, MNIST classification)
+  and <code>src/ex4.ipynb</code> (ViT patching, transformer blocks, GLU variants).
+</footer>
+</div>
+
+<script>
+const SECTIONS = [
+  {id:"ex1", title:"Exercise 1 — Tensor basics", sub:"Creation, shape manipulation, indexing, broadcasting, vectorization, einsum, attention masking."},
+  {id:"ex2", title:"Exercise 2 — PyTorch core", sub:"Autograd, dataloading & collation, AdamW from scratch, the training step, initialization."},
+  {id:"ex3", title:"Exercise 3 — Neural networks", sub:"Linear/Embedding/Dropout, LayerNorm & RMSNorm, MLPs, residuals, cross-entropy, MNIST training."},
+  {id:"ex4", title:"Exercise 4 — ViT × GLU variants", sub:"Patch tokenization, positional embeddings, pre-LN encoder blocks, GLU-family MLPs, experiment design."}
+];
+
+const Q = [
+/* ---------------- ex1 ---------------- */
+{s:"ex1", stem:"What does the following print?", code:"x = torch.arange(0, 5, 2)\nprint(x)",
+ opts:["tensor([0, 2, 4])","tensor([0, 2, 4, 6])","tensor([0., 2., 4.])","tensor([2, 4])"], a:0,
+ e:"<code>arange</code> is <b>end-exclusive</b>: it stops before 5, so 6 never appears. Integer arguments give an integer (int64) tensor, so the values print without decimal points."},
+
+{s:"ex1", stem:"What does <code>torch.linspace(0.0, 1.0, steps=5)</code> return?",
+ opts:["tensor([0.00, 0.25, 0.50, 0.75, 1.00])","tensor([0.0, 0.2, 0.4, 0.6, 0.8])","tensor([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])","tensor([0.0, 1.0, 2.0, 3.0, 4.0])"], a:0,
+ e:"<code>linspace</code> is <b>end-inclusive</b> and produces exactly <code>steps</code> values, evenly spaced between start and end. Contrast with <code>arange</code>, which is end-exclusive."},
+
+{s:"ex1", stem:"What is the dtype of <code>torch.tensor([1, 2, 3])</code>?",
+ opts:["torch.int64","torch.float32","torch.float64","It depends on the default device"], a:0,
+ e:"<code>torch.tensor([...])</code> <b>infers</b> the dtype from the Python values: ints → integer tensor (int64), floats → float tensor (float32). Pass <code>dtype=</code> explicitly when you need something specific."},
+
+{s:"ex1", stem:"Why does the tutorial ask you to call <code>torch.manual_seed(seed)</code> before creating random tensors?",
+ opts:["So the random choices are repeatable across runs, which makes debugging and grading reproducible","Because otherwise <code>torch.randn</code> raises an error","It makes the random numbers uniformly distributed instead of normal","It guarantees bit-identical results on every device and backend"], a:0,
+ e:"Seeding fixes the starting state of the RNG so weight init, shuffling and dropout become repeatable. The notebook explicitly warns that even with fixed seeds some GPU ops remain non-deterministic, so it is not a device-independent guarantee."},
+
+{s:"ex1", stem:"Which statement about <code>view</code> and <code>reshape</code> matches the notebook?",
+ opts:["<code>view</code> is zero-copy but typically requires contiguous memory and can raise an error; <code>reshape</code> tries to return a view and copies when it cannot","<code>view</code> always copies; <code>reshape</code> never copies","Both always return a view and never allocate","<code>reshape</code> requires contiguous memory; <code>view</code> works on any layout"], a:0,
+ e:"<code>view</code> reinterprets the existing storage, so it needs a compatible (usually contiguous) layout and throws otherwise. <code>reshape</code> is the forgiving version: view when possible, allocate + copy when not."},
+
+{s:"ex1", stem:"This code raises a runtime error. What is the standard fix?", code:"x = torch.randn(2, 3, 4)\ny = x.transpose(-1, -2).view(2, 12)",
+ opts:["Insert <code>.contiguous()</code> before <code>.view(...)</code> (or use <code>.reshape(...)</code>)","Call <code>.detach()</code> before the view","Use <code>x.permute(0, 1, 2)</code> first","Cast to float64 before viewing"], a:0,
+ e:"<code>transpose</code> returns a non-contiguous view (same storage, different strides), and <code>view</code> needs contiguous memory. <code>x.contiguous()</code> forces a contiguous copy; <code>reshape</code> would do that fallback for you."},
+
+{s:"ex1", stem:"You have an image batch of shape <code>(B, H, W, C)</code> and need PyTorch's channels-first <code>(B, C, H, W)</code>. Which call is correct?",
+ opts:["<code>x.permute(0, 3, 1, 2)</code>","<code>x.permute(0, 2, 3, 1)</code>","<code>x.view(B, C, H, W)</code>","<code>x.transpose(1, 3)</code>"], a:0,
+ e:"<code>permute</code> takes the <i>source</i> position of each output dim: output dim 0 ← input 0 (B), dim 1 ← input 3 (C), dim 2 ← input 1 (H), dim 3 ← input 2 (W). A plain <code>view</code> would reinterpret bytes and scramble the data; <code>transpose(1,3)</code> gives <code>(B, C, W, H)</code>."},
+
+{s:"ex1", stem:"<code>x</code> has shape <code>(5, 7)</code>. What is the shape of <code>x.unsqueeze(1)</code>?",
+ opts:["(5, 1, 7)","(1, 5, 7)","(5, 7, 1)","(5, 7)"], a:0,
+ e:"<code>unsqueeze(dim)</code> inserts a size-1 axis <i>at</i> position <code>dim</code>, shifting the rest right. <code>squeeze</code> is the inverse: it removes size-1 dimensions."},
+
+{s:"ex1", stem:"A function must return a copy of <code>x</code> with one entry changed while leaving the input untouched. What is essential?",
+ opts:["Clone first (<code>result = x.clone()</code>), then assign into the clone","Assign into <code>x</code> directly — indexed assignment already returns a new tensor","Use <code>x.detach()</code> instead of <code>x.clone()</code>","Wrap the assignment in <code>torch.no_grad()</code>"], a:0,
+ e:"Indexed assignment is in-place and basic slicing returns a <b>view</b> into the same storage, so writing through it mutates the caller's tensor. <code>clone()</code> allocates independent memory. <code>detach()</code> only cuts the autograd link — it still shares data."},
+
+{s:"ex1", stem:"Which of these usually returns a view (no new allocation)?",
+ opts:["Basic slicing such as <code>x[1:3, :]</code>","Fancy indexing with an index tensor, <code>x[idx]</code>","<code>torch.cat([a, b])</code>","<code>x.repeat(2, 1)</code>"], a:0,
+ e:"Basic slicing can be expressed with offsets/strides, so it returns a view when possible. Fancy (list/tensor) indexing, <code>cat</code> and <code>repeat</code> all materialize new memory."},
+
+{s:"ex1", stem:"<code>x</code> has shape <code>(B, T, D)</code>. Which expression correctly centers <code>x</code> by its mean over the time axis?",
+ opts:["<code>x - x.mean(dim=1, keepdim=True)</code>","<code>x - x.mean(dim=1)</code>","<code>x - x.mean(dim=2, keepdim=True)</code>","<code>x - x.mean()</code> — only the global mean broadcasts"], a:0,
+ e:"With <code>keepdim=True</code> the mean has shape <code>(B, 1, D)</code>, which broadcasts back against <code>(B, T, D)</code>. Without it the mean is <code>(B, D)</code>, which right-aligns as <code>(1, B, D)</code> and fails (or silently misaligns)."},
+
+{s:"ex1", stem:"Broadcasting <code>a</code> of shape <code>(3, 1, 5)</code> with <code>b</code> of shape <code>(4, 5)</code> gives which result shape?",
+ opts:["(3, 4, 5)","(3, 1, 5)","Error — ranks differ","(3, 4, 5, 5)"], a:0,
+ e:"Dimensions align from the <b>right</b>: 5 vs 5 match; 1 vs 4 → the size-1 axis stretches to 4; <code>a</code>'s leading 3 has no partner, so it is kept. A pair is compatible only if the sizes are equal or one of them is 1."},
+
+{s:"ex1", stem:"What is the difference between <code>torch.max(x, dim=1)</code> and <code>x.argmax(dim=1)</code>?",
+ opts:["<code>max</code> returns a <code>(values, indices)</code> tuple; <code>argmax</code> returns only the indices","<code>max</code> returns only values; <code>argmax</code> returns values and indices","They return the same thing under different names","<code>max</code> keeps the reduced dim, <code>argmax</code> drops it"], a:0,
+ e:"With a <code>dim</code> argument, <code>torch.max</code> is a reduction that hands back both the maximum values and their positions — which is why the exercise unpacks <code>values, idx = max_over_dim(x, dim=1)</code>."},
+
+{s:"ex1", stem:"<code>a</code> and <code>b</code> both have shape <code>(2, 3)</code>. What are the shapes of <code>torch.cat([a, b], dim=0)</code> and <code>torch.stack([a, b], dim=0)</code>?",
+ opts:["(4, 3) and (2, 2, 3)","(2, 2, 3) and (4, 3)","(4, 3) and (4, 3)","(2, 6) and (2, 2, 3)"], a:0,
+ e:"<code>cat</code> joins along an <b>existing</b> dimension; <code>stack</code> creates a <b>new</b> dimension. Both always allocate new memory."},
+
+{s:"ex1", stem:"Which statement about <code>expand</code> vs <code>repeat</code> is correct?",
+ opts:["<code>expand</code> only stretches size-1 dims and returns a stride trick without copying, so writing into it can change many positions at once","<code>expand</code> copies data, <code>repeat</code> does not","<code>expand</code> works on any dimension size, <code>repeat</code> only on size-1 dims","They are aliases; <code>repeat</code> is just the older name"], a:0,
+ e:"<code>expand</code> gives a read-only-style view where many logical positions point at the same memory — perfect for broadcasting, dangerous for in-place writes. <code>repeat</code> materializes independent copies."},
+
+{s:"ex1", stem:"With <code>out</code> a zero vector, what does <code>result = out.scatter_add(0, indices, values)</code> produce in <code>result</code>?",
+ opts:["A new tensor where position <code>indices[k]</code> holds the sum of every <code>values[k]</code> routed to it — duplicate indices accumulate","A new tensor where <code>result[indices[k]] = values[k]</code>, so duplicate indices keep only the last write","The gathered values <code>out[indices]</code>","<code>values</code> sorted by <code>indices</code>"], a:0,
+ e:"Accumulate-on-collision is what makes this the loop-free way to build histograms and segment sums. Note the method has no trailing underscore: it <b>returns</b> the result and leaves <code>out</code> as zeros, so you must use the return value. Plain <code>scatter</code> overwrites instead — fine for one-hot encoding, where each row receives a single 1."},
+
+{s:"ex1", stem:"<code>masked_mean</code> uses the opposite convention to the attention masks: here <code>mask == True</code> means \"keep this entry\". If every entry along the reduction dim is <code>False</code>, which pattern satisfies \"define the mean as 0\" without dividing by zero?",
+ opts:["<code>(x * mask).sum(dim) / mask.sum(dim).clamp(min=1)</code>","<code>(x * mask).sum(dim) / mask.sum(dim)</code>","<code>x.mean(dim) * mask.sum(dim)</code>","<code>torch.where(mask, x, 0).mean(dim)</code>"], a:0,
+ e:"Clamping the denominator to at least 1 keeps the arithmetic safe: the numerator is already 0 when nothing is kept, so 0/1 = 0. Dividing by the raw count yields <code>nan</code>."},
+
+{s:"ex1", stem:"With <code>x: (B, T, D)</code> and <code>W: (D, H)</code>, which einsum implements the linear projection <code>x @ W</code>?",
+ opts:["<code>torch.einsum(\"btd,dh->bth\", x, W)</code>","<code>torch.einsum(\"btd,dh->bhd\", x, W)</code>","<code>torch.einsum(\"btd,hd->bth\", x, W)</code>","<code>torch.einsum(\"btd,dh->btdh\", x, W)</code>"], a:0,
+ e:"The repeated letter <code>d</code> appears in both inputs and not in the output, so it is contracted (summed). Letters kept in the output — <code>b</code>, <code>t</code>, <code>h</code> — define the result shape <code>(B, T, H)</code>."},
+
+{s:"ex1", stem:"For queries <code>q: (B, H, T, Dh)</code> and keys <code>k: (B, H, T, Dh)</code>, which einsum produces attention scores of shape <code>(B, H, T, T)</code>?",
+ opts:["<code>\"bhtd,bhsd->bhts\"</code>","<code>\"bhtd,bhsd->bhtd\"</code>","<code>\"bhtd,bhtd->bht\"</code>","<code>\"bhtd,bhds->bhts\"</code>"], a:0,
+ e:"Give the two sequence axes <b>different</b> letters (<code>t</code> for queries, <code>s</code> for keys) so both survive into the output, and share <code>d</code> so the per-head feature dim is contracted — that is <code>QKᵀ</code>. Reusing <code>t</code> for both would compute only the diagonal."},
+
+{s:"ex1", stem:"Which expression is the numerically stable softmax along <code>dim</code>?",
+ opts:["<code>e = (x - x.max(dim, keepdim=True).values).exp(); e / e.sum(dim, keepdim=True)</code>","<code>x.exp() / x.exp().sum(dim, keepdim=True)</code>","<code>x / x.sum(dim, keepdim=True)</code>","<code>(x - x.mean(dim, keepdim=True)).exp()</code>"], a:0,
+ e:"Subtracting the per-row max leaves the softmax mathematically unchanged (the constant cancels) but caps the exponent at <code>exp(0)=1</code>, so large logits cannot overflow to <code>inf</code>."},
+
+{s:"ex1", stem:"In this notebook's convention, <code>mask == True</code> means \"invalid\". How should the mask be applied in a masked softmax?",
+ opts:["Fill masked logits with a large negative value <b>before</b> the softmax, so they receive probability ~0","Multiply the softmax output by the mask afterwards and renormalize","Set masked logits to 0 before the softmax","Set masked probabilities to 1 and subtract them at the end"], a:0,
+ e:"Masking must happen on the logits, before normalization, so masked entries contribute nothing to the denominator. Setting them to 0 does not work: 0 is not <code>-inf</code>, so a masked position would outrank every real position with a negative logit. (Careful: this course uses True = invalid, the opposite of the HuggingFace <code>attention_mask</code> convention.)"},
+
+{s:"ex1", stem:"For the causal mask convention \"<code>mask[i, j] == True</code> means position j is in the future and must not be attended to\", which construction is right for <code>T = 4</code>?",
+ opts:["<code>torch.ones(T, T, dtype=torch.bool).triu(diagonal=1)</code> — strictly upper triangular","<code>torch.ones(T, T, dtype=torch.bool).tril(diagonal=0)</code> — lower triangular including the diagonal","<code>torch.ones(T, T, dtype=torch.bool).triu(diagonal=0)</code> — upper triangular including the diagonal","<code>torch.eye(T, dtype=torch.bool)</code> — the diagonal only"], a:0,
+ e:"Entry <code>(i, i)</code> must stay <code>False</code>: a token may always attend to itself. That means the True region starts one above the main diagonal — <code>diagonal=1</code>."},
+
+/* ---------------- ex2 ---------------- */
+{s:"ex2", stem:"What is a <b>leaf tensor</b> in autograd?",
+ opts:["A tensor you created directly (not the result of a tracked op) with <code>requires_grad=True</code>; only these accumulate into <code>.grad</code>","Any tensor at the end of the computation graph, e.g. the loss","Any tensor with <code>requires_grad=False</code>","A tensor that has been detached from the graph"], a:0,
+ e:"Model parameters and inputs you mark with <code>requires_grad=True</code> are leaves. Intermediate results have a <code>grad_fn</code> and, by default, do not populate <code>.grad</code> when you call <code>backward()</code>."},
+
+{s:"ex2", stem:"You call <code>loss.backward()</code> twice without zeroing gradients. What is in <code>p.grad</code>?",
+ opts:["The <b>sum</b> of both backward passes — <code>backward()</code> accumulates into <code>.grad</code>","Only the second gradient — <code>backward()</code> overwrites <code>.grad</code>","The average of the two gradients","<code>None</code> — a second backward clears the graph and the grad"], a:0,
+ e:"Accumulation is deliberate (it is what makes gradient accumulation over micro-batches work), which is exactly why every training loop calls <code>optimizer.zero_grad()</code> before the backward pass."},
+
+{s:"ex2", stem:"How does <code>torch.autograd.grad(f, x)</code> differ from <code>f.backward()</code>?",
+ opts:["<code>autograd.grad</code> returns <code>df/dx</code> directly and does not write into <code>x.grad</code>; <code>backward()</code> populates <code>.grad</code> of the leaves","<code>autograd.grad</code> writes into <code>x.grad</code>, <code>backward()</code> returns a tensor","Only <code>autograd.grad</code> works for non-scalar outputs; <code>backward()</code> never does","They are identical; <code>backward()</code> is just a method-style alias"], a:0,
+ e:"Because <code>autograd.grad</code> leaves <code>.grad</code> untouched, it is the cleaner choice when you just want a derivative and do not want to disturb (or have to reset) optimizer-visible state."},
+
+{s:"ex2", stem:"What is the difference between <code>torch.no_grad()</code> and <code>.detach()</code>?",
+ opts:["<code>no_grad()</code> is a context that disables graph building for everything inside it; <code>detach()</code> returns one tensor that shares data but is disconnected from the graph","<code>no_grad()</code> deletes existing gradients; <code>detach()</code> freezes parameters","<code>detach()</code> copies the data, <code>no_grad()</code> does not","They are interchangeable"], a:0,
+ e:"Use <code>no_grad()</code> around whole evaluation/inference blocks to save memory and time; use <code>detach()</code> when you want a specific value treated as a constant (e.g. a bootstrapped target) while the rest still tracks gradients."},
+
+{s:"ex2", stem:"What actually changes when you call <code>model.eval()</code>?",
+ opts:["Module behaviour switches to inference mode — dropout is disabled and batchnorm uses running statistics — but gradients are still tracked","Gradient computation is disabled, so a backward pass would fail","Parameters are frozen and no longer update","The model is moved to CPU"], a:0,
+ e:"<code>train()</code>/<code>eval()</code> only flips the <code>self.training</code> flag that layers read. Turning off autograd is a separate concern: that is <code>torch.no_grad()</code>, which is why evaluation code typically uses both."},
+
+{s:"ex2", stem:"What is the minimum a map-style <code>Dataset</code> must implement?",
+ opts:["<code>__len__</code> (number of items) and <code>__getitem__</code> (return one item)","<code>__iter__</code> and <code>__next__</code>","<code>__len__</code> and <code>collate_fn</code>","<code>forward</code> and <code>__len__</code>"], a:0,
+ e:"The <code>Dataset</code> answers \"how many, and give me item i\". Batching, shuffling and worker parallelism are the <code>DataLoader</code>'s job."},
+
+{s:"ex2", stem:"Why do variable-length token sequences require a custom <code>collate_fn</code>?",
+ opts:["The default collation stacks items along a new batch dim, which needs equal shapes — so you must pad to <code>T_max</code> yourself and report lengths/masks","The default collation shuffles the batch, which corrupts sequences","<code>DataLoader</code> cannot handle integer tensors without one","Without it the batch dimension ends up last"], a:0,
+ e:"Default collation is essentially <code>torch.stack</code>. Once lengths differ, stacking is impossible, so the custom function pads to <code>(B, T_max)</code> and returns the bookkeeping (lengths and padding mask) the model needs to ignore the padding."},
+
+{s:"ex2", stem:"In <code>pad_1d_sequences</code>, what does <code>padding_mask[b, t] == True</code> mean, and how is <code>attention_mask</code> derived?",
+ opts:["True = padding/invalid; <code>attention_mask = ~padding_mask</code> (True = keep a real token)","True = real token; <code>attention_mask = padding_mask</code>","True = padding; <code>attention_mask = padding_mask</code>","True = real token; <code>attention_mask = ~padding_mask</code>"], a:0,
+ e:"This assignment fixes True = padding, matching the ex1 masking convention where True means \"invalid\". The attention mask is its logical negation, so True there means \"keep\". Mixing the two polarities is the classic source of silent bugs."},
+
+{s:"ex2", stem:"<code>RandomCropSequenceDataset</code> must be deterministic given a seed and may not use Python's <code>random</code>. What does the exercise ask for?",
+ opts:["A <code>torch.Generator</code> seeded in <code>__init__</code> and passed to the sampling call","<code>torch.manual_seed(seed)</code> inside every <code>__getitem__</code>","<code>numpy.random.seed(seed)</code> at import time","Setting <code>num_workers=0</code> so ordering is fixed"], a:0,
+ e:"An explicit generator keeps the randomness local to the dataset instead of mutating global RNG state — important because DataLoader workers each get their own process and global seeding interacts badly with them."},
+
+{s:"ex2", stem:"Which per-parameter state does AdamW keep?",
+ opts:["<code>m</code> (EMA of gradients), <code>v</code> (EMA of squared gradients), and a step counter <code>t</code>","Only the previous gradient","The full gradient history for the last k steps","A per-parameter learning rate and nothing else"], a:0,
+ e:"The two moment buffers are <code>zeros_like(p)</code> — same shape, dtype and device as the parameter — and the step counter drives bias correction."},
+
+{s:"ex2", stem:"Why does Adam/AdamW apply bias correction <code>m_hat = m / (1 - beta1**t)</code>?",
+ opts:["<code>m</code> and <code>v</code> start at zero, so early estimates are biased toward zero; the correction rescales them, and its effect fades as <code>t</code> grows","It prevents the learning rate from decaying to zero","It normalizes gradients to unit norm","It compensates for the weight decay term"], a:0,
+ e:"With <code>m</code> initialized at 0, the first EMA update gives only <code>(1-beta1)*grad</code> — far too small. Dividing by <code>1 - beta1**t</code> undoes that. Note the counter is incremented to <b>1</b> before the first correction, never 0 (which would divide by zero)."},
+
+{s:"ex2", stem:"What makes AdamW's weight decay <i>decoupled</i>, following the update in the notebook <code>p -= lr * (m_hat / (sqrt(v_hat) + eps) + weight_decay * p)</code>?",
+ opts:["The decay is applied to the parameter in the update itself, not added into the gradient — so it never enters the <code>m</code>/<code>v</code> moment estimates","It decays only the biases, not the weights","It applies the decay before the forward pass","It scales the decay by <code>sqrt(v_hat)</code>"], a:0,
+ e:"Classic Adam-with-L2 folds <code>wd * p</code> into the gradient, so the adaptive denominator rescales the regularization inconsistently across parameters. AdamW keeps the two effects separate."},
+
+{s:"ex2", stem:"What is the correct order of a minimal training step?",
+ opts:["<code>model.train()</code> → <code>zero_grad()</code> → forward → loss → <code>loss.backward()</code> → <code>optimizer.step()</code>","forward → loss → <code>optimizer.step()</code> → <code>loss.backward()</code> → <code>zero_grad()</code>","<code>zero_grad()</code> → forward → <code>optimizer.step()</code> → loss → <code>backward()</code>","forward → <code>backward()</code> → <code>zero_grad()</code> → <code>step()</code>"], a:0,
+ e:"Zeroing <i>after</i> the backward pass (option 4) would erase the gradients you are about to apply, and stepping before <code>backward()</code> would apply stale ones."},
+
+{s:"ex2", stem:"For an <code>nn.Linear</code> weight of shape <code>(out_features, in_features)</code>, what are fan-in and fan-out?",
+ opts:["<code>fan_in = in_features</code>, <code>fan_out = out_features</code>","<code>fan_in = out_features</code>, <code>fan_out = in_features</code>","Both equal <code>in_features * out_features</code>","Both equal the number of rows"], a:0,
+ e:"Fan-in counts incoming connections to a unit (one per input feature) and fan-out counts outgoing ones. PyTorch stores the weight transposed relative to the math convention, which is why this trips people up."},
+
+{s:"ex2", stem:"Which bound does Xavier/Glorot uniform initialization use?",
+ opts:["<code>bound = gain * sqrt(6 / (fan_in + fan_out))</code>, sampling <code>U(-bound, bound)</code>","<code>bound = gain * sqrt(2 / fan_in)</code>","<code>bound = 1 / sqrt(fan_in + fan_out)</code>","<code>bound = gain * sqrt(3 / fan_out)</code>"], a:0,
+ e:"Xavier balances variance in both directions — forward activations and backward gradients — hence the symmetric <code>fan_in + fan_out</code> denominator. It suits tanh/linear-ish networks."},
+
+{s:"ex2", stem:"For Kaiming/He uniform with ReLU, which chain matches the exercise?",
+ opts:["<code>gain = sqrt(2)</code>, <code>std = gain / sqrt(fan_in)</code>, <code>bound = sqrt(3) * std</code>","<code>gain = 1</code>, <code>std = gain / sqrt(fan_out)</code>, <code>bound = std</code>","<code>gain = sqrt(2)</code>, <code>std = gain / sqrt(fan_in + fan_out)</code>, <code>bound = 6 * std</code>","<code>gain = 2</code>, <code>std = gain * sqrt(fan_in)</code>, <code>bound = std / 3</code>"], a:0,
+ e:"The <code>sqrt(2)</code> gain compensates for ReLU zeroing roughly half its inputs (halving the variance). The <code>sqrt(3)</code> factor converts a target standard deviation into the half-width of a uniform distribution, since <code>U(-b, b)</code> has std <code>b/sqrt(3)</code>."},
+
+{s:"ex2", stem:"How does <code>init_linear_</code> treat the bias by default?",
+ opts:["It sets the bias to zero unless told otherwise","It applies the same Xavier/Kaiming scheme to the bias","It leaves the bias at PyTorch's default init","It sets the bias to one"], a:0,
+ e:"Biases carry no fan-in/fan-out structure, so zeroing them is the standard convention; the variance-preserving argument only applies to the weight matrix."},
+
+/* ---------------- ex3 ---------------- */
+{s:"ex3", stem:"Following <code>nn.Linear</code> conventions, how is the weight stored and applied?",
+ opts:["Weight of shape <code>(out_features, in_features)</code>, computing <code>y = x @ Wᵀ + b</code>","Weight of shape <code>(in_features, out_features)</code>, computing <code>y = x @ W + b</code>","Weight of shape <code>(out_features, in_features)</code>, computing <code>y = W @ x + b</code> with no batch support","Weight of shape <code>(batch, in_features, out_features)</code>"], a:0,
+ e:"The transposed storage lets a single matmul handle arbitrary leading batch dims: <code>x: (..., in_features)</code> → <code>y: (..., out_features)</code>."},
+
+{s:"ex3", stem:"Why must the weight be wrapped in <code>nn.Parameter</code> rather than kept as a plain tensor attribute?",
+ opts:["<code>nn.Parameter</code> registers it with the module so it appears in <code>model.parameters()</code> (and moves with <code>.to()</code>/<code>state_dict</code>) — otherwise the optimizer never sees it","A plain tensor cannot have <code>requires_grad=True</code>","<code>nn.Parameter</code> is required for broadcasting to work","It only affects printing of the module"], a:0,
+ e:"A raw tensor attribute still supports autograd, but it is invisible to <code>parameters()</code>, so it is silently never optimized, never saved and never moved to the GPU — a bug that looks like \"the model just doesn't learn\"."},
+
+{s:"ex3", stem:"An <code>Embedding</code> layer is best described as:",
+ opts:["A learnable lookup table mapping integer ids <code>(...)</code> to vectors <code>(..., embedding_dim)</code> by indexing into a weight matrix","A one-hot encoder followed by a fixed random projection","A hashing function from tokens to fixed vectors","A normalization layer applied to token ids"], a:0,
+ e:"It is mathematically equivalent to one-hot ⊗ weight matrix, but implemented as indexing — the same result without materializing the huge one-hot tensor."},
+
+{s:"ex3", stem:"How should <code>Dropout</code> with probability <code>p</code> behave?",
+ opts:["Training: zero entries with probability <code>p</code> and scale the survivors by <code>1/(1-p)</code>. Eval: return the input unchanged","Training: zero entries with probability <code>p</code>, no scaling. Eval: scale the output by <code>(1-p)</code>","Training and eval: zero entries with probability <code>p</code>","Training: scale everything by <code>p</code>. Eval: identity"], a:0,
+ e:"This is <b>inverted dropout</b>: rescaling at train time keeps the expected activation equal to the un-dropped value, so inference needs no correction at all and can be a plain identity."},
+
+{s:"ex3", stem:"What exactly does <code>LayerNorm</code> normalize, and which parameters does it learn?",
+ opts:["Mean and variance over the last (feature) dimension per example, with learnable per-feature <code>weight</code> and <code>bias</code>, both of shape <code>(D,)</code>","Mean and variance over the batch dimension, with learnable <code>weight</code> and <code>bias</code>","Mean and variance over all dimensions, with no learnable parameters","Only the variance over the feature dim, with a learnable <code>weight</code>"], a:0,
+ e:"Because the statistics come from a single example's features, LayerNorm behaves identically at batch size 1 and needs no running statistics — the reason transformers prefer it over BatchNorm."},
+
+{s:"ex3", stem:"How does <code>RMSNorm</code> differ from <code>LayerNorm</code>?",
+ opts:["It skips mean subtraction — dividing by <code>sqrt(mean(x²) + eps)</code> — and typically keeps only a learnable scale, which makes it cheaper","It normalizes over the batch instead of the features","It has no learnable parameters at all","It uses the max absolute value instead of the variance"], a:0,
+ e:"Dropping the centering step (and usually the bias) removes a reduction and a subtraction per token. It is popular in modern LLMs precisely because it is faster at essentially equal quality."},
+
+{s:"ex3", stem:"What is the point of a residual wrapper computing <code>x + fn(x)</code>?",
+ opts:["It gives gradients a direct path back through the addition, making deeper stacks trainable","It reduces the parameter count of <code>fn</code>","It normalizes the activations of <code>fn</code>","It makes <code>fn</code> permutation-invariant"], a:0,
+ e:"The identity branch means the gradient reaching <code>x</code> is at least the incoming gradient, so signal does not vanish as depth grows. It also makes \"do nothing\" an easy function for the block to represent."},
+
+{s:"ex3", stem:"What are the input/output dims of a transformer-style FeedForward block, and which activation does the exercise specify?",
+ opts:["<code>D → 4D → D</code> with GELU","<code>D → D/4 → D</code> with ReLU","<code>D → 4D → 4D</code> with GELU","<code>D → D → D</code> with tanh"], a:0,
+ e:"The 4× expansion is the standard transformer width, and the FFN is applied independently at every token position — it mixes features, not positions (attention does that)."},
+
+{s:"ex3", stem:"After <code>transforms.ToTensor()</code>, what does one MNIST image look like, and what does the MLP classifier receive?",
+ opts:["Shape <code>(1, 28, 28)</code>, float32 in <code>[0, 1]</code>, flattened to a 784-vector","Shape <code>(28, 28, 1)</code>, uint8 in <code>[0, 255]</code>, flattened to 784","Shape <code>(3, 28, 28)</code>, float32 in <code>[-1, 1]</code>, flattened to 2352","Shape <code>(28, 28)</code>, int64 labels included"], a:0,
+ e:"<code>ToTensor()</code> converts to channels-first float32 and divides by 255. Since an MLP has no spatial structure, the <code>1×28×28</code> image is flattened to 784 inputs."},
+
+{s:"ex3", stem:"Which implements mean cross-entropy from logits stably (without <code>nn.CrossEntropyLoss</code>)?",
+ opts:["<code>-logits.log_softmax(dim=-1).gather(1, targets[:, None]).mean()</code>","<code>-logits.softmax(dim=-1).log().gather(1, targets[:, None]).mean()</code>","<code>-logits.gather(1, targets[:, None]).mean()</code>","<code>(logits - targets[:, None]).pow(2).mean()</code>"], a:0,
+ e:"<code>log_softmax</code> folds the max-subtraction into a single stable kernel. Taking <code>softmax(...).log()</code> separately can underflow to 0 and then produce <code>-inf</code>; dropping the normalizer entirely is not a probability at all."},
+
+{s:"ex3", stem:"In the MNIST training loop, why call <code>model.train()</code> during training and <code>model.eval()</code> before measuring accuracy?",
+ opts:["So stochastic layers such as dropout are active while learning and deterministic during evaluation — otherwise the reported accuracy is noisy and pessimistic","Because <code>model.eval()</code> is required for <code>backward()</code> to work","Because the optimizer only steps in eval mode","It only affects logging, not the numbers"], a:0,
+ e:"Leaving dropout on during evaluation randomly deletes activations at test time, understating accuracy; leaving it off during training removes the regularization you asked for."},
+
+{s:"ex3", stem:"The exercise does not grade model performance but asks for at least 70% test accuracy. What is that threshold for?",
+ opts:["It is a floor that confirms the implementation is correct — anything below it means something in the pipeline is broken","It is the target performance you should tune the model to hit, without exceeding it","It is the accuracy required to skip the video submission","It marks state-of-the-art performance for this architecture"], a:0,
+ e:"The notebook states the 70% figure \"confirms a correct model implementation\" — it is a sanity floor, not a performance goal. Falling below it points at a concrete bug: wrong loss, missing <code>zero_grad</code>, or weights never registered as <code>nn.Parameter</code> so the optimizer never sees them."},
+
+/* ---------------- ex4 ---------------- */
+{s:"ex4", stem:"For a 28×28 MNIST image with patch size <code>P = 4</code>, how many tokens does patchify produce and what is the dimension of each raw patch vector?",
+ opts:["49 tokens (7×7 grid), each of dimension 16","16 tokens, each of dimension 49","784 tokens, each of dimension 1","7 tokens, each of dimension 112"], a:0,
+ e:"The grid is <code>28/4 = 7</code> per side → <code>7 × 7 = 49</code> non-overlapping patches, and each patch flattens to <code>P*P = 16</code> values (single channel). Those 49 vectors are the sequence the transformer sees."},
+
+{s:"ex4", stem:"Why does a ViT add positional embeddings to the patch embeddings?",
+ opts:["Self-attention is permutation-equivariant, so without them the model cannot tell where a patch came from","They normalize the patch embeddings before attention","They reduce the token count","They replace the need for a classification head"], a:0,
+ e:"Shuffle the input tokens and attention shuffles the outputs identically — the set of tokens carries no spatial layout. Adding a learned per-position vector injects that missing information."},
+
+{s:"ex4", stem:"Which is the <b>pre-LN</b> encoder block the exercise specifies?",
+ opts:["<code>x = x + Dropout(SelfAttn(LN(x)))</code>; <code>x = x + Dropout(MLP(LN(x)))</code>","<code>x = LN(x + Dropout(SelfAttn(x)))</code>; <code>x = LN(x + Dropout(MLP(x)))</code>","<code>x = LN(SelfAttn(x)) + MLP(x)</code>","<code>x = SelfAttn(MLP(LN(x)))</code>"], a:0,
+ e:"Pre-LN normalizes the <i>input</i> of each sublayer and leaves the residual stream unnormalized, which keeps a clean identity path and trains stably without warmup. Option 2 is the original post-LN arrangement."},
+
+{s:"ex4", stem:"How does the TinyViT get from token features to 10 class logits?",
+ opts:["Pool the token features (e.g. mean over the token dim) and project with a linear head","Flatten all tokens and use the last one only, without pooling","Average the class logits produced per patch by a separate head per position","Sum the raw patch pixels and apply a softmax"], a:0,
+ e:"The exercise uses mean pooling over the 49 tokens instead of the original paper's dedicated <code>[CLS]</code> token — simpler and about as effective at this scale."},
+
+{s:"ex4", stem:"What is the defining computation of a GLU-style MLP?",
+ opts:["Two projections <code>a</code> and <code>b</code> of the input; the output is <code>act(a) * b</code>, projected back to <code>d_model</code>","One projection followed by two different activations added together","A projection followed by <code>softmax</code> instead of GELU","An attention layer applied inside the FFN"], a:0,
+ e:"One branch is passed through the nonlinearity and acts as a data-dependent <b>gate</b> on the other, linear branch. This elementwise multiplication is what makes it \"gated\"."},
+
+{s:"ex4", stem:"How do GEGLU and SwiGLU differ?",
+ opts:["They differ only in the activation applied to the gate branch — GELU for GEGLU, Swish/SiLU for SwiGLU","GEGLU gates elementwise, SwiGLU gates via matrix multiplication","SwiGLU has no gate branch","GEGLU is applied to attention, SwiGLU to the FFN"], a:0,
+ e:"The whole GLU-variant family shares one template <code>act(xW) * (xV)</code>; the variants just swap the activation (ReGLU/GEGLU/SwiGLU/Bilinear), which is what makes them a clean ablation."},
+
+{s:"ex4", stem:"Shazeer's 2/3 width rule shrinks the hidden dimension of GLU FFNs. Why?",
+ opts:["A GLU block uses three weight matrices instead of two, so shrinking <code>d_ff</code> to ~2/3 keeps parameters and compute comparable to the baseline FFN","GLU variants overfit unless the layer is narrower","It makes the hidden dim divisible by the number of heads","Two thirds is the largest width that fits on CPU"], a:0,
+ e:"Without it, a GLU variant would simply be a bigger model, and any gain could be attributed to the extra capacity rather than the gating. The rule is what makes the comparison a controlled ablation."},
+
+{s:"ex4", stem:"The exercise asks you to think about reproducibility and statistical significance. Which conclusion is best supported?",
+ opts:["Run each variant with several seeds and compare means with spread; a gap smaller than the seed-to-seed variation is not evidence of an improvement","One run per variant is enough if the seed is fixed, since fixed seeds remove all randomness from the comparison","Whichever variant reaches the lowest single training-loss value at any step is the winner","Comparing final test accuracy from one run each is sufficient if the accuracies differ at all"], a:0,
+ e:"A fixed seed makes a single run <i>repeatable</i>, not <i>representative</i>. With runs varying by a percentage point, a one-point gap between two single runs is noise — you need the spread across seeds to say anything."},
+
+{s:"ex4", stem:"Beyond accuracy, which quantity does the deliverable explicitly require you to report per variant, and why does it matter here?",
+ opts:["The number of trainable parameters — it shows whether the variants were actually compared at a matched budget","The wall-clock time of the data download","The number of MNIST classes used","The size of the checkpoint file on disk"], a:0,
+ e:"Parameter counts are the audit trail for the 2/3 rule: they let a reader verify that the GLU variants were not simply given more capacity than the baseline FFN."},
+
+{s:"ex4", stem:"Which set of choices keeps the FFN-vs-GLU ablation <i>controlled</i>?",
+ opts:["Same data and dataloaders, same seeds, same optimizer/lr/epochs, matched parameter budget — only the MLP inside the block changes","Tune the learning rate separately for each variant to show each at its best","Train the baseline for fewer epochs since it converges faster","Use a different patch size per variant to suit each MLP"], a:0,
+ e:"An ablation isolates one factor. Once you also vary the learning rate, the schedule or the tokenization, an accuracy difference can no longer be attributed to the gating mechanism."}
+];
+
+/* ---------- render ---------- */
+const quizEl = document.getElementById("quiz");
+const state = {answered:0, right:0, filter:"all"};
+const LETTERS = ["A","B","C","D","E"];
+
+function render(){
+  quizEl.innerHTML = "";
+  let n = 0;
+  SECTIONS.forEach(sec => {
+    const qs = Q.filter(q => q.s === sec.id);
+    const secEl = document.createElement("section");
+    secEl.dataset.section = sec.id;
+    if(state.filter !== "all" && state.filter !== sec.id) secEl.classList.add("hidden");
+    const h = document.createElement("h2"); h.textContent = sec.title;
+    const sub = document.createElement("p"); sub.className = "sub"; sub.textContent = sec.sub;
+    secEl.append(h, sub);
+
+    qs.forEach(q => {
+      n++;
+      const card = document.createElement("div");
+      card.className = "q";
+
+      const num = document.createElement("div");
+      num.className = "num";
+      num.textContent = "Question " + n;
+      card.append(num);
+
+      const stem = document.createElement("p");
+      stem.className = "stem";
+      stem.innerHTML = q.stem;
+      card.append(stem);
+
+      if(q.code){
+        const pre = document.createElement("pre");
+        const code = document.createElement("code");
+        code.textContent = q.code;
+        pre.append(code); card.append(pre);
+      }
+
+      // options are shuffled every render so position carries no information
+      const order = shuffled(q.opts.length);
+      card.dataset.correctPos = order.indexOf(q.a);
+
+      const opts = document.createElement("div");
+      opts.className = "opts";
+      order.forEach((orig, pos) => {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.innerHTML = '<span class="key">' + LETTERS[pos] + '</span><span>' + q.opts[orig] + '</span>';
+        b.addEventListener("click", () => choose(card, q, orig, pos));
+        opts.append(b);
+      });
+      card.append(opts);
+
+      const exp = document.createElement("div");
+      exp.className = "explain hidden";
+      exp.innerHTML = '<span class="tag"></span>' + q.e;
+      card.append(exp);
+
+      secEl.append(card);
+    });
+    quizEl.append(secEl);
+  });
+  document.getElementById("total").textContent = Q.length;
+  updateScore();
+}
+
+function shuffled(n){
+  const a = Array.from({length:n}, (_, i) => i);
+  for(let i = n - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function choose(card, q, picked, pickedPos){
+  if(card.dataset.done) return;
+  card.dataset.done = "1";
+  const correctPos = Number(card.dataset.correctPos);
+  const buttons = card.querySelectorAll(".opt");
+  buttons.forEach((b, pos) => {
+    b.disabled = true;
+    if(pos === correctPos) b.classList.add("correct");
+    else if(pos === pickedPos) b.classList.add("wrong");
+  });
+  const exp = card.querySelector(".explain");
+  exp.querySelector(".tag").textContent = (picked === q.a) ? "Correct" : "Correct answer: " + LETTERS[correctPos];
+  exp.classList.remove("hidden");
+
+  state.answered++;
+  if(picked === q.a) state.right++;
+  updateScore();
+}
+
+function updateScore(){
+  document.getElementById("right").textContent = state.right;
+  document.getElementById("answered").textContent = state.answered;
+  const pct = state.answered ? Math.round(100 * state.right / state.answered) : 0;
+  document.getElementById("pct").textContent = state.answered ? "(" + pct + "%)" : "";
+  document.getElementById("fill").style.width = (100 * state.answered / Q.length) + "%";
+}
+
+/* ---------- filters ---------- */
+const filtersEl = document.getElementById("filters");
+[{id:"all", label:"All topics"}].concat(
+  SECTIONS.map(s => ({id:s.id, label:s.id.toUpperCase()}))
+).forEach(f => {
+  const b = document.createElement("button");
+  b.textContent = f.label;
+  if(f.id === "all") b.classList.add("active");
+  b.addEventListener("click", () => {
+    state.filter = f.id;
+    filtersEl.querySelectorAll("button").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    document.querySelectorAll("section[data-section]").forEach(sec => {
+      sec.classList.toggle("hidden", f.id !== "all" && sec.dataset.section !== f.id);
+    });
+  });
+  filtersEl.append(b);
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  state.answered = 0; state.right = 0;
+  render();
+  window.scrollTo({top:0, behavior:"smooth"});
+});
+
+render();
+</script>
+</body>
+</html>
