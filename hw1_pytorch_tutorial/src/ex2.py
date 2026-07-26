@@ -494,8 +494,22 @@ def adamw_step_many_(
     - Update each param in-place.
     - Return the list of updated states.
     """
-    # TODO: implement
-    raise NotImplementedError
+    assert len(params) == len(grads) == len(states)
+
+    new_states: list[AdamWState] = [
+        adamw_step_(
+            p=param,
+            grad=grad,
+            state=state,
+            lr=lr,
+            betas=betas,
+            eps=eps,
+            weight_decay=weight_decay,
+        )
+        for param, grad, state in zip(params, grads, states)
+    ]
+
+    return new_states
 
 
 # %% [markdown]
