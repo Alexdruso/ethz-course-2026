@@ -179,16 +179,16 @@ class TensorPairDataset(Dataset):
     """
 
     def __init__(self, x: torch.Tensor, y: torch.Tensor):
-        # TODO: implement
-        raise NotImplementedError
+        assert len(x) == len(y)
+
+        self.x = x
+        self.y = y
 
     def __len__(self) -> int:
-        # TODO: implement
-        raise NotImplementedError
+        return len(self.x)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
-        # TODO: implement
-        raise NotImplementedError
+        return (self.x[idx], self.y[idx])
 
 
 # %%
