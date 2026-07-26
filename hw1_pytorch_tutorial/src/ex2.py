@@ -238,16 +238,32 @@ class RandomCropSequenceDataset(Dataset):
     """
 
     def __init__(self, tokens: torch.Tensor, crop_len: int, seed: int | None = None):
-        # TODO: implement
-        raise NotImplementedError
+        self.t_total = tokens.shape[1]
+
+        assert self.t_total >= crop_len
+
+        self.tokens = tokens
+        self.crop_len = crop_len
+
+        self.generator = torch.Generator()
+
+        if seed is not None:
+            self.generator = self.generator.manual_seed(seed)
 
     def __len__(self) -> int:
-        # TODO: implement
-        raise NotImplementedError
+        return len(self.tokens)
 
     def __getitem__(self, idx: int) -> torch.Tensor:
-        # TODO: implement
-        raise NotImplementedError
+        sample = self.tokens[idx]
+
+        start_index = torch.randint(
+            low=0,
+            high=self.t_total - self.crop_len + 1,
+            size=(1,),
+            generator=self.generator,
+        )
+
+        return sample[start_index : start_index + self.crop_len]
 
 
 # %%
