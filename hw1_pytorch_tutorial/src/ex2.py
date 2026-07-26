@@ -430,11 +430,7 @@ def init_adamw_state(p: torch.Tensor) -> AdamWState:
       same dtype as p.
     """
     with torch.no_grad():
-        return AdamWState(
-            m=torch.zeros_like(p),
-            v=torch.zeros_like(p),
-            t=0
-        )
+        return AdamWState(m=torch.zeros_like(p), v=torch.zeros_like(p), t=0)
 
 
 # %%
@@ -463,8 +459,21 @@ def adamw_step_(
     - Do not modify grad.
     - Should work for any tensor shape.
     """
-    # TODO: implement
-    raise NotImplementedError
+    with torch.no_grad():
+        t = state.t
+        t += 1
+
+        beta1, beta2 = betas
+
+        m = beta1 * state.m + (1 - beta1) * grad
+        v = beta2 * state.v + (1 - beta2) * grad**2
+
+        m_hat = m / (1 - beta1**t)
+        v_hat = v / (1 - beta2**t)
+
+        p = p - lr * (m_hat / (v_hat**2 + eps) + weight_decay * p)
+
+        return AdamWState(m=m, v=v, t=t)
 
 
 # %%
