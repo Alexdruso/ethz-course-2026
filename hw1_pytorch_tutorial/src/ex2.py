@@ -74,8 +74,13 @@ def grad_with_autograd_grad(x: torch.Tensor) -> torch.Tensor:
     - x should require grad inside the function (don't assume it does).
     - Must return df/dx
     """
-    # TODO: implement
-    raise NotImplementedError
+    x = x.clone()
+
+    x.requires_grad_(True)
+
+    result = (x**2).sum()
+
+    return torch.autograd.grad(result, x)[0]
 
 
 # %%
