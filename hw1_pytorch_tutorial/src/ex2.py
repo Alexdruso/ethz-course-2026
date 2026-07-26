@@ -349,8 +349,14 @@ def make_dataloader(
     """
     Create a DataLoader with optional collate_fn.
     """
-    # TODO: implement
-    raise NotImplementedError
+    return DataLoader(
+        dataset=dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        drop_last=drop_last,
+        collate_fn=collate_fn,
+        num_workers=num_workers,
+    )
 
 
 # %% [markdown]
