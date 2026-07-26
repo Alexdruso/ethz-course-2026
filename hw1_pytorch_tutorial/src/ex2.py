@@ -471,7 +471,7 @@ def adamw_step_(
         m_hat = m / (1 - beta1**t)
         v_hat = v / (1 - beta2**t)
 
-        p[:] = p - lr * (m_hat / (v_hat**2 + eps) + weight_decay * p)
+        p[:] = p - lr * (m_hat / (torch.sqrt(v_hat) + eps) + weight_decay * p)
 
         return AdamWState(m=m, v=v, t=t)
 
@@ -527,7 +527,7 @@ def adamw_step_many_(
 # In this exercise you’ll implement a single MSE training step using a standard PyTorch optimizer.
 # Return a Python float loss value.
 
-
+    
 # %%
 def train_step_mse(
     model: nn.Module,
@@ -537,9 +537,11 @@ def train_step_mse(
     """
     One MSE train step using standard torch optimizer.
     """
-    # TODO: implement
-    raise NotImplementedError
+    features, targets = batch
 
+    model.train()
+
+    
 
 # %% [markdown]
 # ## Parameter initialization
