@@ -333,8 +333,21 @@ def collate_next_token_batch(
     - pad input_ids and target_ids consistently
     - attention_mask is the logical NOT of padding_mask
     """
-    # TODO: implement
-    raise NotImplementedError
+    input_padding = pad_1d_sequences(
+        seqs=[input_sequence for input_sequence, output_sequence in batch],
+        pad_value=pad_value,
+    )
+    output_padding = pad_1d_sequences(
+        seqs=[output_sequence for input_sequence, output_sequence in batch],
+        pad_value=pad_value,
+    )
+
+    return {
+        "input_ids": input_padding.tokens,
+        "target_ids": output_padding.tokens,
+        "attention_mask": ~input_padding.padding_mask,
+        "padding_mask": input_padding.padding_mask,
+    }
 
 
 # %%
