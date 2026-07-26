@@ -125,8 +125,15 @@ def grad_wrt_multiple_inputs(
     - Use torch.autograd.grad
     - Ensure both a and b require grad in this function.
     """
-    # TODO: implement
-    raise NotImplementedError
+    a = a.clone().detach()
+    b = b.clone().detach()
+
+    a.requires_grad_(True)
+    b.requires_grad_(True)
+
+    fn = (a**2 + a * b).sum()
+
+    return torch.autograd.grad(fn, (a, b))
 
 
 # %% [markdown]
