@@ -293,8 +293,22 @@ def pad_1d_sequences(seqs: list[torch.Tensor], pad_value: int = 0) -> PaddedBatc
     - padding_mask[b, t] == True iff t >= lengths[b]
     - tokens should be dtype long, if not cast them
     """
-    # TODO: implement
-    raise NotImplementedError
+    max_length: int = max(len(sequence) for sequence in seqs)
+
+    tokens = torch.tensor(data=pad_value, dtype=torch.long).repeat(
+        (len(seqs), max_length)
+    )
+
+    for idx, sequence in enumerate(seqs):
+        tokens[idx, : len(sequence)] = sequence
+
+    return PaddedBatch(
+        tokens=tokens,
+        lengths=torch.tensor(
+            data=tuple(len(sequence) for sequence in seqs), dtype=torch.long
+        ),
+        padding_mask=tokens == pad_value,
+    )
 
 
 # %%
