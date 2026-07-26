@@ -181,8 +181,8 @@ class TensorPairDataset(Dataset):
     def __init__(self, x: torch.Tensor, y: torch.Tensor):
         assert len(x) == len(y)
 
-        self.x = x
-        self.y = y
+        self.x = x.clone()
+        self.y = y.clone()
 
     def __len__(self) -> int:
         return len(self.x)
@@ -209,16 +209,13 @@ class NextTokenDataset(Dataset):
     """
 
     def __init__(self, tokens: torch.Tensor):
-        # TODO: implement
-        raise NotImplementedError
+        self.tokens = tokens.clone()
 
     def __len__(self) -> int:
-        # TODO: implement
-        raise NotImplementedError
+        return len(self.tokens)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
-        # TODO: implement
-        raise NotImplementedError
+        return (self.tokens[idx, :-1], self.tokens[idx, 1:])
 
 
 # %%
