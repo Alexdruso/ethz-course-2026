@@ -527,7 +527,7 @@ def adamw_step_many_(
 # In this exercise you’ll implement a single MSE training step using a standard PyTorch optimizer.
 # Return a Python float loss value.
 
-    
+
 # %%
 def train_step_mse(
     model: nn.Module,
@@ -541,7 +541,16 @@ def train_step_mse(
 
     model.train()
 
-    
+    predictions: torch.Tensor = model.forward(features)
+
+    loss = ((targets - predictions)**2).mean()
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    return loss.item()
+
 
 # %% [markdown]
 # ## Parameter initialization
