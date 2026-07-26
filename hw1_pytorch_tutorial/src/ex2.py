@@ -30,6 +30,7 @@
 # %%
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import torch
@@ -543,7 +544,7 @@ def train_step_mse(
 
     predictions: torch.Tensor = model.forward(features)
 
-    loss = ((targets - predictions)**2).mean()
+    loss = ((targets - predictions) ** 2).mean()
 
     optimizer.zero_grad()
     loss.backward()
@@ -578,8 +579,7 @@ def train_step_mse(
 # %%
 def fan_in_fan_out(weight: torch.Tensor) -> tuple[int, int]:
     """Compute (fan_in, fan_out) for a weight tensor."""
-    # TODO: implement
-    raise NotImplementedError
+    return weight.shape[1], weight.shape[0]
 
 
 # %%
@@ -589,8 +589,12 @@ def xavier_uniform_(weight: torch.Tensor, gain: float = 1.0) -> torch.Tensor:
       bound = gain * sqrt(6 / (fan_in + fan_out))
       U(-bound, bound)
     """
-    # TODO: implement
-    raise NotImplementedError
+    with torch.no_grad():
+        fan_in, fan_out = fan_in_fan_out(weight)
+
+        bound = gain * math.sqrt(6 / (fan_in + fan_out))
+
+        return weight.uniform_(-bound, bound)
 
 
 # %%
@@ -604,8 +608,13 @@ def kaiming_uniform_(weight: torch.Tensor, nonlinearity: str = "relu") -> torch.
       bound = sqrt(3) * std
       U(-bound, bound)
     """
-    # TODO: implement
-    raise NotImplementedError
+    with torch.no_grad():
+        gain = math.sqrt(2) if nonlinearity == "relu" else 1.0
+
+        stf = gain / math.sqrt(fan_in_fan_out(weight)[0])
+        bound = math.sqrt(3) * stf
+
+        return weight.uniform_(-bound, bound)
 
 
 # %%
@@ -618,5 +627,16 @@ def init_linear_(layer: nn.Linear, scheme: str = "xavier") -> nn.Linear:
       - "kaiming_relu"
       - "zero" (weights and bias = 0)
     """
-    # TODO: implement
-    raise NotImplementedError
+    with torch.no_grad():
+        if scheme == "xavier":
+            xavier_uniform_(layer.weight)
+        elif scheme == "kaiming_relu":
+            kaiming_uniform_(layer.weight, nonlinearity="relu")
+        elif scheme == "zero":
+            layer.weight.zero_()
+        else:
+            raise ValueError(f"Unknown scheme: {scheme}")
+
+        layer.bias.zero_()
+
+    return layer
