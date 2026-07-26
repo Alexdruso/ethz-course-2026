@@ -429,8 +429,12 @@ def init_adamw_state(p: torch.Tensor) -> AdamWState:
     - State tensors must live on the same device as p (CPU vs GPU) and have the
       same dtype as p.
     """
-    # TODO: implement
-    raise NotImplementedError
+    with torch.no_grad():
+        return AdamWState(
+            m=torch.zeros_like(p),
+            v=torch.zeros_like(p),
+            t=0
+        )
 
 
 # %%
