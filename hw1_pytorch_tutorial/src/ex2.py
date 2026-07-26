@@ -299,15 +299,18 @@ def pad_1d_sequences(seqs: list[torch.Tensor], pad_value: int = 0) -> PaddedBatc
         (len(seqs), max_length)
     )
 
+    padding_mask = torch.ones_like(tokens, dtype=torch.bool)
+
     for idx, sequence in enumerate(seqs):
         tokens[idx, : len(sequence)] = sequence
+        padding_mask[idx, : len(sequence)] = False
 
     return PaddedBatch(
         tokens=tokens,
         lengths=torch.tensor(
             data=tuple(len(sequence) for sequence in seqs), dtype=torch.long
         ),
-        padding_mask=tokens == pad_value,
+        padding_mask=padding_mask,
     )
 
 
