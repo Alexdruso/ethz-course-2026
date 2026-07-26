@@ -74,7 +74,7 @@ def grad_with_autograd_grad(x: torch.Tensor) -> torch.Tensor:
     - x should require grad inside the function (don't assume it does).
     - Must return df/dx
     """
-    x = x.clone()
+    x = x.clone().detach()  # avoid modifying the original tensor
 
     x.requires_grad_(True)
 
@@ -94,8 +94,20 @@ def grad_with_backward(x: torch.Tensor) -> torch.Tensor:
     - Must return df/dx
     - Must not leak gradients across calls (watch x.grad accumulation)
     """
-    # TODO: implement
-    raise NotImplementedError
+
+    x = x.clone().detach()  # avoid modifying the original tensor
+
+    x.requires_grad_(True)
+
+    result = (x**2).sum()
+
+    result.backward()
+
+    gradient = x.grad
+
+    assert gradient is not None, "Gradient should not be None after backward()"
+
+    return gradient
 
 
 # %%
