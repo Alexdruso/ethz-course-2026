@@ -325,12 +325,10 @@ class FeedForward(nn.Module):
 class Residual(nn.Module):
     def __init__(self, fn: nn.Module):
         super().__init__()
-        # TODO: implement
-        raise NotImplementedError
+        self._fn = fn
 
     def forward(self, x: torch.Tensor, *args, **kwargs) -> torch.Tensor:
-        # TODO: return x + fn(x, ...)
-        raise NotImplementedError
+        return x + self._fn(x, *args, **kwargs)
 
 
 # %% [markdown]
