@@ -200,13 +200,16 @@ class LayerNorm(nn.Module):
         Normalize over the last dimension.
         x: (..., D)
         """
+
+        x = (x - x.mean(dim=-1, keepdim=True)) / torch.sqrt(
+            x.var(dim=-1, keepdim=True, unbiased=False) + self._eps
+        )
+
         if self._weight is not None:
             assert self._bias is not None
             x = x * self._weight + self._bias
 
-        return (x - x.mean(dim=-1, keepdim=True)) / torch.sqrt(
-            x.var(dim=-1, keepdim=True) + self._eps
-        )
+        return x
 
 
 # %%
@@ -220,20 +223,18 @@ class RMSNorm(nn.Module):
         self._weight: torch.nn.Parameter
 
         self._weight = torch.nn.Parameter(
-                data=torch.ones(size=(normalized_shape,), requires_grad=True),
-                requires_grad=True,
-            )
+            data=torch.ones(size=(normalized_shape,), requires_grad=True),
+            requires_grad=True,
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         RMSNorm: x / sqrt(mean(x^2) + eps) * weight
         over the last dimension.
         """
-        x = x * self._weight
+        x = x / torch.sqrt((x**2).mean(dim=-1, keepdim=True) + self._eps)
 
-        return x / torch.sqrt(
-            (x**2).mean(dim=-1, keepdim=True) + self._eps
-        )
+        return x * self._weight
 
 
 # %% [markdown]
