@@ -71,16 +71,36 @@ from torch import nn
 class Linear(nn.Module):
     def __init__(self, in_features: int, out_features: int, bias: bool = True):
         super().__init__()
-        # TODO: initialize parameters
-        raise NotImplementedError
+
+        weights = torch.nn.init.xavier_uniform(
+            torch.zeros(
+                size=(out_features, in_features),
+                requires_grad=True,
+            )
+        )
+
+        self._weights: nn.Parameter = nn.Parameter(data=weights, requires_grad=True)
+
+        self._bias: nn.Parameter | None = (
+            nn.Parameter(
+                data=torch.zeros(
+                    size=(out_features,),
+                    requires_grad=True,
+                ),
+                requires_grad=True,
+            )
+            if bias
+            else None
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         x: (..., in_features)
         return: (..., out_features)
         """
-        # TODO: implement
-        raise NotImplementedError
+        bias = self._bias if self._bias is not None else 0.0
+
+        return x @ self._weights.T + bias
 
 
 # %%
