@@ -293,10 +293,10 @@ class MLP(nn.Module):
 
         sequence.append(Linear(in_features=in_dim, out_features=out_dim))
 
-        self.model = torch.nn.Sequential(*sequence)
+        self._model = torch.nn.Sequential(*sequence)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.model(x)
+        return self._model(x)
 
 
 # %%
@@ -308,12 +308,17 @@ class FeedForward(nn.Module):
     def __init__(self, d_model: int, d_ff: int | None = None):
         super().__init__()
         d_ff = d_ff or 4 * d_model
-        # TODO: create two Linear layers and choose an activation (GELU)
-        raise NotImplementedError
+
+        self._model = torch.nn.Sequential(
+            *[
+                Linear(in_features=d_model, out_features=d_ff),
+                torch.nn.GELU(),
+                Linear(in_features=d_ff, out_features=d_model),
+            ]
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO: implement
-        raise NotImplementedError
+        return self._model(x)
 
 
 # %%
