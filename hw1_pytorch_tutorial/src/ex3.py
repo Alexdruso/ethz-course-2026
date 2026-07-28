@@ -277,11 +277,11 @@ class MLP(nn.Module):
     ):
         super().__init__()
 
-        assert depth >= 0
+        assert depth >= 1
 
         sequence: list[nn.Module] = []
 
-        for _ in range(depth):
+        for _ in range(depth - 1):
             sequence.append(
                 torch.nn.Sequential(Linear(in_features=in_dim, out_features=hidden_dim))
             )
