@@ -178,16 +178,35 @@ class LayerNorm(nn.Module):
         self, normalized_shape: int, eps: float = 1e-5, elementwise_affine: bool = True
     ):
         super().__init__()
-        # TODO: implement
-        raise NotImplementedError
+
+        self._normalized_shape = normalized_shape
+        self._eps = eps
+
+        self._weight: torch.nn.Parameter | None = None
+        self._bias: torch.nn.Parameter | None = None
+
+        if elementwise_affine:
+            self._weight = torch.nn.Parameter(
+                data=torch.ones(size=(normalized_shape,), requires_grad=True),
+                requires_grad=True,
+            )
+            self._bias = torch.nn.Parameter(
+                data=torch.zeros(size=(normalized_shape,), requires_grad=True),
+                requires_grad=True,
+            )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Normalize over the last dimension.
         x: (..., D)
         """
-        # TODO: implement
-        raise NotImplementedError
+        if self._weight is not None:
+            assert self._bias is not None
+            x = x * self._weight + self._bias
+
+        return (x - x.mean(dim=-1, keepdim=True)) / torch.sqrt(
+            x.var(dim=-1, keepdim=True) + self._eps
+        )
 
 
 # %%
