@@ -121,8 +121,7 @@ class Embedding(nn.Module):
         idx: (...,) int64
         return: (..., embedding_dim)
         """
-        # TODO: implement (index into weight)
-        raise NotImplementedError
+        return self._embeddings[idx]
 
 
 # %%
