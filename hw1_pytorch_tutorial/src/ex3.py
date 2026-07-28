@@ -107,8 +107,14 @@ class Linear(nn.Module):
 class Embedding(nn.Module):
     def __init__(self, num_embeddings: int, embedding_dim: int):
         super().__init__()
-        # TODO: initialize
-        raise NotImplementedError
+        self._embeddings = nn.Parameter(
+            data=torch.nn.init.xavier_uniform(
+                tensor=torch.zeros(
+                    size=(num_embeddings, embedding_dim), requires_grad=True
+                )
+            ),
+            requires_grad=True,
+        )
 
     def forward(self, idx: torch.Tensor) -> torch.Tensor:
         """
