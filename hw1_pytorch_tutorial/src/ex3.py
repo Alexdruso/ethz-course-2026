@@ -276,13 +276,27 @@ class MLP(nn.Module):
         use_layernorm: bool = False,
     ):
         super().__init__()
-        # TODO: build modules (list of Linear + activation)
-        # Optionally insert LayerNorm between layers.
-        raise NotImplementedError
+
+        assert depth >= 0
+
+        sequence: list[nn.Module] = []
+
+        for _ in range(depth):
+            sequence.append(
+                torch.nn.Sequential(Linear(in_features=in_dim, out_features=hidden_dim))
+            )
+            sequence.append(torch.nn.GELU())
+            if use_layernorm:
+                sequence.append(LayerNorm(normalized_shape=hidden_dim))
+
+            in_dim = hidden_dim
+
+        sequence.append(Linear(in_features=in_dim, out_features=out_dim))
+
+        self.model = torch.nn.Sequential(*sequence)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO: implement
-        raise NotImplementedError
+        return self.model(x)
 
 
 # %%
