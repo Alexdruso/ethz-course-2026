@@ -1,2 +1,8 @@
 __pycache__/
 .pytest_cache/
+
+# Editor config
+.vscode/settings.json
+
+# Downloaded datasets (MNIST etc.)
+data/
