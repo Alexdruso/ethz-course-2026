@@ -128,14 +128,21 @@ class Embedding(nn.Module):
 class Dropout(nn.Module):
     def __init__(self, p: float):
         super().__init__()
+        self._p = p
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         In train mode: drop with prob p and scale by 1/(1-p).
         In eval mode: return x unchanged.
         """
-        # TODO: implement without using nn.Dropout
-        raise NotImplementedError
+        if self.training:
+            drop = torch.rand(size=x.shape, requires_grad=False) >= self._p
+
+            scale = 1 / (1 - self._p)
+
+            x = x * drop * scale
+
+        return x
 
 
 # %% [markdown]
