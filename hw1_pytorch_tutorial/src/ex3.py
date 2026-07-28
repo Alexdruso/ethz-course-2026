@@ -213,16 +213,27 @@ class LayerNorm(nn.Module):
 class RMSNorm(nn.Module):
     def __init__(self, normalized_shape: int, eps: float = 1e-8):
         super().__init__()
-        # TODO: implement
-        raise NotImplementedError
+
+        self._normalized_shape = normalized_shape
+        self._eps = eps
+
+        self._weight: torch.nn.Parameter
+
+        self._weight = torch.nn.Parameter(
+                data=torch.ones(size=(normalized_shape,), requires_grad=True),
+                requires_grad=True,
+            )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         RMSNorm: x / sqrt(mean(x^2) + eps) * weight
         over the last dimension.
         """
-        # TODO: implement
-        raise NotImplementedError
+        x = x * self._weight
+
+        return x / torch.sqrt(
+            (x**2).mean(dim=-1, keepdim=True) + self._eps
+        )
 
 
 # %% [markdown]
