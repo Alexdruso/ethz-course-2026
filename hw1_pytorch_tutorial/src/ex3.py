@@ -541,3 +541,19 @@ losses = train_classifier(
     epochs=10,
     seed=10,
 )
+
+# %%
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(8, 4))
+
+ax.plot(range(1, len(losses) + 1), losses)
+ax.set_xlabel("update step")
+ax.set_ylabel("train loss")
+ax.set_title("Training loss curve")
+ax.grid(True, alpha=0.3)
+
+fig.tight_layout()
+fig.savefig("train_loss_curve.png", dpi=150)
+
+print("saved loss curve to train_loss_curve.png")
