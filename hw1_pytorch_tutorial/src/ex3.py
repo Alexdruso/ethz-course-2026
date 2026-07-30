@@ -543,6 +543,14 @@ losses = train_classifier(
 )
 
 # %%
+import os
+
+import matplotlib
+
+if not os.environ.get("DISPLAY"):
+    # headless run: render to file instead of a Tk window
+    matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 
 fig, ax = plt.subplots(figsize=(8, 4))
