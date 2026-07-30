@@ -368,7 +368,20 @@ transform = transforms.ToTensor()  # -> float32 in [0,1], shape (1, 28, 28)
 train_ds = datasets.MNIST(root="data", train=True, download=True, transform=transform)
 test_ds = datasets.MNIST(root="data", train=False, download=True, transform=transform)
 
-# TODO: define the dataloaders
+BATCH_SIZE = 1024
+
+train_loader = DataLoader(
+    dataset=train_ds,
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+    num_workers=2
+)
+test_loader = DataLoader(
+    dataset=test_ds,
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+    num_workers=2
+)
 
 
 # %%
