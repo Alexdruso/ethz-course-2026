@@ -110,8 +110,14 @@ from torchvision import datasets, transforms
 # %%
 def patchify(x: torch.Tensor, patch_size: int) -> torch.Tensor:
     """Convert images to patch tokens."""
-    # TODO: Implement a tokenization strategy
-    raise NotImplementedError
+
+    *batch, c, h, w = x.shape
+
+    assert (c * h * w) % patch_size**2 == 0, (
+        "patchify supports only non overlapping patches of the same size"
+    )
+
+    return x.flatten(*batch).resize(*batch, (c * h * w) // patch_size**2, patch_size * patch_size)
 
 
 # %%

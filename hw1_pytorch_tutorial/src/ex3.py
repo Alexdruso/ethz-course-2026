@@ -526,6 +526,7 @@ def train_classifier(
 
     return losses
 
+
 if __name__ == "__main__":
     # %%
 
