@@ -407,16 +407,14 @@ def cross_entropy_from_logits(
 class ClassificationHead(nn.Module):
     def __init__(self, d_in: int, num_classes: int):
         super().__init__()
-        # TODO: implement
-        raise NotImplementedError
+        self._model = Linear(in_features=d_in, out_features=num_classes, bias=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         x: (..., d_in)
         return: (..., num_classes) logits
         """
-        # TODO: implement
-        raise NotImplementedError
+        return self._model(x)
 
 
 # %%
