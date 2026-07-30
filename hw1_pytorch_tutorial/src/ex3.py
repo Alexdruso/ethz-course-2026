@@ -417,6 +417,34 @@ class ClassificationHead(nn.Module):
         return self._model(x)
 
 
+class FlattenImage(nn.Module):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x.flatten(start_dim=1)
+
+
+class Classifier(nn.Module):
+    def __init__(self, height: int, width: int):
+        super().__init__()
+        self._model = torch.nn.Sequential(
+            FlattenImage(),
+            MLP(
+                in_dim=height * width,
+                hidden_dim=128,
+                out_dim=64,
+                depth=4,
+                use_layernorm=True,
+            ),
+            ClassificationHead(d_in=64, num_classes=10),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        x: (..., d_in)
+        return: (..., num_classes) logits
+        """
+        return self._model(x)
+
+
 # %%
 def accuracy(loader: DataLoader, model: nn.Module):
     with torch.no_grad():
@@ -500,3 +528,16 @@ def train_classifier(
 
 
 # %%
+
+model = Classifier(28, 28)
+
+model.compile()
+
+losses = train_classifier(
+    model=model,
+    train_data_loader=train_loader,
+    test_data_loader=test_loader,
+    lr=1e-3,
+    epochs=10,
+    seed=10,
+)
