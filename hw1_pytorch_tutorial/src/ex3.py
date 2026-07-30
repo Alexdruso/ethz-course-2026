@@ -526,42 +526,42 @@ def train_classifier(
 
     return losses
 
+if __name__ == "__main__":
+    # %%
 
-# %%
+    model = Classifier(28, 28)
 
-model = Classifier(28, 28)
+    model.compile()
 
-model.compile()
+    losses = train_classifier(
+        model=model,
+        train_data_loader=train_loader,
+        test_data_loader=test_loader,
+        lr=1e-3,
+        epochs=10,
+        seed=10,
+    )
 
-losses = train_classifier(
-    model=model,
-    train_data_loader=train_loader,
-    test_data_loader=test_loader,
-    lr=1e-3,
-    epochs=10,
-    seed=10,
-)
+    # %%
+    import os
 
-# %%
-import os
+    import matplotlib
 
-import matplotlib
+    if not os.environ.get("DISPLAY"):
+        # headless run: render to file instead of a Tk window
+        matplotlib.use("Agg")
 
-if not os.environ.get("DISPLAY"):
-    # headless run: render to file instead of a Tk window
-    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
 
-import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(figsize=(8, 4))
 
-fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(range(1, len(losses) + 1), losses)
+    ax.set_xlabel("update step")
+    ax.set_ylabel("train loss")
+    ax.set_title("Training loss curve")
+    ax.grid(True, alpha=0.3)
 
-ax.plot(range(1, len(losses) + 1), losses)
-ax.set_xlabel("update step")
-ax.set_ylabel("train loss")
-ax.set_title("Training loss curve")
-ax.grid(True, alpha=0.3)
+    fig.tight_layout()
+    fig.savefig("train_loss_curve.png", dpi=150)
 
-fig.tight_layout()
-fig.savefig("train_loss_curve.png", dpi=150)
-
-print("saved loss curve to train_loss_curve.png")
+    print("saved loss curve to train_loss_curve.png")
