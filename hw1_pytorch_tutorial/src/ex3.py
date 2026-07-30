@@ -371,16 +371,10 @@ test_ds = datasets.MNIST(root="data", train=False, download=True, transform=tran
 BATCH_SIZE = 1024
 
 train_loader = DataLoader(
-    dataset=train_ds,
-    batch_size=BATCH_SIZE,
-    shuffle=True,
-    num_workers=2
+    dataset=train_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=2
 )
 test_loader = DataLoader(
-    dataset=test_ds,
-    batch_size=BATCH_SIZE,
-    shuffle=True,
-    num_workers=2
+    dataset=test_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=2
 )
 
 
@@ -398,8 +392,15 @@ def cross_entropy_from_logits(
     Requirements:
     - Use log-softmax for stability (do not use torch.nn.CrossEntropyLoss, we check this in the autograder).
     """
-    # TODO: implement
-    raise NotImplementedError
+    max_logit, _ = logits.max(dim=-1, keepdim=True)
+
+    log_softmax = (
+        logits
+        - max_logit
+        - torch.log(torch.exp(logits - max_logit).sum(dim=-1, keepdim=True))
+    )
+
+    return -log_softmax[torch.arange(logits.shape[0]), targets].mean()
 
 
 # %%
