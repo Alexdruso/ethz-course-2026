@@ -374,7 +374,7 @@ train_loader = DataLoader(
     dataset=train_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=2
 )
 test_loader = DataLoader(
-    dataset=test_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=2
+    dataset=test_ds, batch_size=BATCH_SIZE, shuffle=False, num_workers=2
 )
 
 
@@ -418,9 +418,21 @@ class ClassificationHead(nn.Module):
 
 
 # %%
-def accuracy(loader):
-    # TODO: You can use this function to evaluate your model accuracy.
-    raise NotImplementedError
+def accuracy(loader: DataLoader, model: nn.Module):
+    with torch.no_grad():
+        results: list[torch.Tensor] = []
+
+        x: torch.Tensor
+        y: torch.Tensor
+
+        for x, y in iter(loader):
+            result = torch.argmax(model(x), dim=-1)
+
+            result = result == y
+
+            results.append(result)
+
+        return torch.tensor(torch.cat(results), dtype=torch.float32).mean()
 
 
 # %%
@@ -447,8 +459,44 @@ def train_classifier(
     - call model.train() during training and model.eval() during evaluation
     - do not use torch.nn.CrossEntropyLoss (use your cross_entropy_from_logits)
     """
-    # TODO: implement
-    raise NotImplementedError
+    torch.manual_seed(seed)
+
+    optimizer = torch.optim.AdamW(params=model.parameters(), lr=lr)
+
+    losses: list[float] = []
+
+    x: torch.Tensor
+    y: torch.Tensor
+
+    for epoch in range(epochs):
+        print(f"training model: {epoch=}")
+
+        model.train()
+
+        for batch_num, (x, y) in enumerate(iter(train_data_loader)):
+            optimizer.zero_grad()
+
+            logits = model(x)
+
+            loss = cross_entropy_from_logits(logits=logits, targets=y)
+
+            print(f"loss at {batch_num=} is {loss.item()}")
+
+            losses.append(loss.item())
+
+            loss.backward()
+
+            optimizer.step()
+
+        print("evaluating model")
+
+        model.eval()
+
+        with torch.no_grad():
+            acc = accuracy(loader=test_data_loader, model=model)
+            print(f"accuracty at {epoch=} is {acc}")
+
+    return losses
 
 
 # %%
