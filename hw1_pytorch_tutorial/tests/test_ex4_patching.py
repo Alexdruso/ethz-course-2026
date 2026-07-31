@@ -7,14 +7,19 @@ Assumed contract (from the notebook text and the ViT paper):
 - `patchify(x, patch_size)` turns `(B, C, H, W)` into `(B, N, C*P*P)` with
   `N = (H//P) * (W//P)`. Tokens are ordered **row-major over the patch grid**
   (left to right, then top to bottom) and the pixels inside a patch are
-  flattened **row-major** as well. All tests use `C = 1` (MNIST), so the
-  channel-vs-pixel ordering question never arises.
+  flattened **row-major** as well. The `C > 1` tests pin the token *width* and
+  its *contents*, but deliberately not the channel-vs-pixel interleaving:
+  whether a token reads `(c, p, p)` or `(p, p, c)` is left to you. Every test
+  that pins an exact ordering uses `C = 1` (MNIST), where the question does not
+  arise.
 - `PatchEmbed(patch_dim, d_model)` is a single affine projection applied
   independently to each token: `(B, N, patch_dim) -> (B, N, d_model)`.
 - `PositionalEmbedding(num_tokens, d_model)` holds one *learned* parameter of
   `num_tokens * d_model` values (ViT-style) and returns `x + pos`, identical
   for every element of the batch.
 """
+
+import warnings
 
 import pytest
 import torch
@@ -24,12 +29,17 @@ from torch import nn
 from ex4 import PatchEmbed, PositionalEmbedding, patchify
 
 
-def _ramp_image(b: int = 1, size: int = 28) -> torch.Tensor:
-    """`x[.., i, j] = 100*i + j`, so every pixel says where it came from."""
-    rows = torch.arange(size).view(size, 1) * 100
-    cols = torch.arange(size).view(1, size)
-    img = (rows + cols).float()
-    return img.expand(b, 1, size, size).clone()
+def _ramp_image(b: int = 1, c: int = 1, h: int = 28, w: int = 28) -> torch.Tensor:
+    """`x[.., k, i, j] = 10000*k + 100*i + j`, so every pixel says where it came from.
+
+    Unique across channel, row and column as long as `h, w < 100`, which makes
+    the value alone enough to identify a pixel's origin.
+    """
+    chans = torch.arange(c).view(c, 1, 1) * 10000
+    rows = torch.arange(h).view(1, h, 1) * 100
+    cols = torch.arange(w).view(1, 1, w)
+    img = (chans + rows + cols).float()
+    return img.expand(b, c, h, w).clone()
 
 
 class TestPatchify:
@@ -99,6 +109,99 @@ class TestPatchify:
         assert out.dtype == torch.float32
         out.sum().backward()
         assert x.grad is not None and torch.allclose(x.grad, torch.ones_like(x))
+
+    @pytest.mark.parametrize("channels", [1, 3])
+    def test_a_token_is_one_grid_cell_deep_in_every_channel(self, channels):
+        """`N` counts grid cells, not channels; the channels widen the token.
+
+        A token count derived from the total element count (`C*H*W // P**2`)
+        happens to be right at `C = 1` and splits one patch into `C` tokens
+        beyond that, so this only bites once you leave MNIST.
+        """
+        x = torch.randn(2, channels, 28, 28)
+
+        out = patchify(x, patch_size=4)
+
+        assert out.shape == (2, 49, channels * 16)
+
+    def test_multi_channel_tokens_hold_the_whole_patch_block(self):
+        """Contents, up to the intra-token ordering the exercise leaves open."""
+        x = _ramp_image(c=3)
+        p, grid = 4, 7
+
+        out = patchify(x, p)
+
+        for token in range(grid * grid):
+            gi, gj = divmod(token, grid)
+            block = x[0, :, gi * p : (gi + 1) * p, gj * p : (gj + 1) * p]
+            assert torch.equal(
+                out[0, token].sort().values, block.reshape(-1).sort().values
+            ), f"token {token}"
+
+    def test_non_square_images_walk_both_axes(self):
+        """`H` and `W` grids are counted separately, and columns advance first.
+
+        Squares hide a `H//P` used where `W//P` was meant, and hide a grid
+        walked column-major.
+        """
+        x = _ramp_image(h=12, w=16)
+        p = 4
+
+        out = patchify(x, p)
+
+        assert out.shape == (1, 12, 16)  # 3 rows x 4 columns of patches
+        assert torch.equal(out[0, 0], x[0, 0, 0:4, 0:4].reshape(-1))
+        assert torch.equal(out[0, 1], x[0, 0, 0:4, 4:8].reshape(-1)), (
+            "second token is the patch to the right"
+        )
+        assert torch.equal(out[0, 4], x[0, 0, 4:8, 0:4].reshape(-1)), (
+            "fifth token starts the second patch row"
+        )
+
+    @pytest.mark.parametrize(
+        "h, w, patch_size", [(28, 32, 8), (28, 28, 5), (30, 30, 4)]
+    )
+    def test_rejects_images_the_patch_size_cannot_tile(self, h, w, patch_size):
+        """Neither axis may be left with a partial patch.
+
+        `(28, 32, 8)` is the case a `C*H*W % P**2 == 0` guard waves through:
+        the element count divides evenly even though `28 % 8 != 0`. What matters
+        is that this fails loudly rather than returning a mangled tensor - the
+        exercise does not fix which exception, so any of the usual ones count.
+        """
+        x = torch.randn(1, 1, h, w)
+
+        with pytest.raises((AssertionError, ValueError, RuntimeError)):
+            patchify(x, patch_size)
+
+    def test_accepts_non_contiguous_inputs(self):
+        """A strided view must be handled, not rejected - so no bare `.view`."""
+        wide = _ramp_image(h=28, w=56)
+        x = wide[..., ::2]  # every other column: same shape, stride 2
+        assert not x.is_contiguous()
+
+        out = patchify(x, patch_size=4)
+
+        assert torch.equal(out, patchify(x.contiguous(), patch_size=4))
+
+    def test_does_not_mutate_its_input(self):
+        x = _ramp_image()
+        before = x.clone()
+
+        patchify(x, patch_size=4)
+
+        assert torch.equal(x, before)
+
+    def test_uses_no_deprecated_ops(self):
+        """A style guard, not a contract: `Tensor.resize` is deprecated, `reshape` is not."""
+        x = torch.randn(2, 1, 28, 28)
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            patchify(x, 4)
+
+        stale = [str(w.message) for w in caught if "deprecat" in str(w.message).lower()]
+        assert not stale, f"patchify uses a deprecated op: {stale}"
 
 
 class TestPatchEmbed:
