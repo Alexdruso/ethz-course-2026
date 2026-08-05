@@ -253,11 +253,42 @@ class TransformerEncoderBlock(nn.Module):
 
     def __init__(self, d_model: int, n_heads: int, mlp: nn.Module, dropout: float):
         super().__init__()
-        # TODO: implement. For attention use nn.MultiHeadAttention
+
+        self._layer_norm_1 = torch.nn.LayerNorm(normalized_shape=d_model)
+
+        self._attention = torch.nn.MultiheadAttention(
+            embed_dim=d_model, num_heads=n_heads
+        )
+
+        self._dropout_1 = torch.nn.Dropout(p=dropout)
+
+        self._layer_norm_2 = torch.nn.LayerNorm(normalized_shape=d_model)
+
+        self._mlp = mlp
+
+        self._dropout_2 = torch.nn.Dropout(p=dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO: implement
-        raise NotImplementedError
+
+        intermediate_result = self._layer_norm_1(x)
+
+        intermediate_result = self._attention.forward(
+            query=intermediate_result,
+            key=intermediate_result,
+            value=intermediate_result,
+        )
+
+        intermediate_result = self._dropout_1(intermediate_result)
+
+        intermediate_result = intermediate_result + x
+
+        result = self._layer_norm_2(intermediate_result)
+
+        result = self._mlp(result)
+
+        result = self._dropout_2(result)
+
+        return result + intermediate_result
 
 
 # %%
@@ -371,6 +402,7 @@ def train_one_run(
     return {
         # TODO: Return your metrics that you think will support your claim for this experiment
     }
+
 
 if __name__ == "__main__":
     # %%
