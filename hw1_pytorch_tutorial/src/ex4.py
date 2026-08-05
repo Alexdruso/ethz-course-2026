@@ -128,10 +128,10 @@ def patchify(x: torch.Tensor, patch_size: int) -> torch.Tensor:
 
     result = result.reshape(*batches, c, h_n, patch_size, w_n, patch_size)
 
-    result = result.permute(*(_ for _ in range(len(batches))), -5, -4, -2, -3, -1)
+    result = result.permute(*(_ for _ in range(len(batches))), -4, -2, -5, -3, -1)
 
     return result.reshape(
-        *batches, (c * h * w) // patch_size**2, patch_size * patch_size
+        *batches, (h * w) // patch_size**2, c * patch_size * patch_size
     )
 
 
