@@ -315,27 +315,39 @@ class TinyViT(nn.Module):
         self.patch_size = patch_size
         patch_size * patch_size
 
-        # TODO: implement a strategy for embedding the patches
-
-        # TODO: implement a strategy to select the right mlp version for your experiment
+        if mlp_kind == "ffn":
+            mlp = FeedForward(d_model=d_model, d_ff=d_ff, dropout=dropout)
+        else:
+            mlp = GLUFeedForward(
+                d_model=d_model, d_ff_gated=d_ff, dropout=dropout, variant=mlp_kind
+            )
 
         self.blocks = nn.ModuleList(
             [
                 TransformerEncoderBlock(
                     d_model=d_model,
                     n_heads=n_heads,
-                    mlp=...,  # TODO: Feed your mlp to the encoder blocks
+                    mlp=mlp,
                     dropout=dropout,
                 )
                 for _ in range(n_layers)
             ]
         )
 
-        # TODO: Add a head to project to the amount of output classes you have
+        self.prediction = torch.nn.Linear(
+            in_features=d_model,
+            out_features=10,  # mnist
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO: Implement
-        logits = None
+
+        result = patchify(x=x, patch_size=self.patch_size)
+
+        for block in self.blocks:
+            result = block(result)
+
+        logits = self.prediction(result)
+
         return logits
 
 
