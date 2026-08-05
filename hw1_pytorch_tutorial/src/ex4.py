@@ -325,7 +325,7 @@ class TinyViT(nn.Module):
         self.blocks = nn.ModuleList(
             [
                 TransformerEncoderBlock(
-                    d_model=d_model,
+                    d_model=d_model, # wrong
                     n_heads=n_heads,
                     mlp=mlp,
                     dropout=dropout,
@@ -335,7 +335,7 @@ class TinyViT(nn.Module):
         )
 
         self.prediction = torch.nn.Linear(
-            in_features=d_model,
+            in_features= self.num_tokens * d_model,
             out_features=10,  # mnist
         )
 
@@ -345,6 +345,8 @@ class TinyViT(nn.Module):
 
         for block in self.blocks:
             result = block(result)
+
+        result = result.flatten(start_dim=1)
 
         logits = self.prediction(result)
 
