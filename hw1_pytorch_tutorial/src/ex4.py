@@ -372,46 +372,46 @@ def train_one_run(
         # TODO: Return your metrics that you think will support your claim for this experiment
     }
 
-
-# %%
-cfg = TrainConfig(
-    seed=0, batch_size=128, epochs=5, lr=3e-4, weight_decay=0.01, device="cpu"
-)
-
-tfm = transforms.Compose([transforms.ToTensor()])
-
-train_ds = datasets.MNIST(root="./data", train=True, download=True, transform=tfm)
-test_ds = datasets.MNIST(root="./data", train=False, download=True, transform=tfm)
-
-train_loader = DataLoader(
-    train_ds, batch_size=cfg.batch_size, shuffle=True, num_workers=0
-)
-test_loader = DataLoader(
-    test_ds, batch_size=cfg.batch_size, shuffle=False, num_workers=0
-)
-
-# Tiny model example. TODO: You're welcome to experiment with these parameters
-patch_size = 4
-d_model = 64
-n_heads = 4
-n_layers = 2
-d_ff = 256
-dropout = 0.1
-
-runs = []  # TODO: Name your runs
-results = []
-
-for kind in runs:
-    model = TinyViT(
-        patch_size=patch_size,
-        d_model=d_model,
-        n_heads=n_heads,
-        n_layers=n_layers,
-        d_ff=d_ff,
-        dropout=dropout,
-        mlp_kind=kind,
+if __name__ == "__main__":
+    # %%
+    cfg = TrainConfig(
+        seed=0, batch_size=128, epochs=5, lr=3e-4, weight_decay=0.01, device="cpu"
     )
-    # TODO: print anything you might want here
-    print(f"\nRun: {kind} | ")
-    out = train_one_run(kind, model, train_loader, test_loader, cfg)
-    results.append(out)
+
+    tfm = transforms.Compose([transforms.ToTensor()])
+
+    train_ds = datasets.MNIST(root="./data", train=True, download=True, transform=tfm)
+    test_ds = datasets.MNIST(root="./data", train=False, download=True, transform=tfm)
+
+    train_loader = DataLoader(
+        train_ds, batch_size=cfg.batch_size, shuffle=True, num_workers=0
+    )
+    test_loader = DataLoader(
+        test_ds, batch_size=cfg.batch_size, shuffle=False, num_workers=0
+    )
+
+    # Tiny model example. TODO: You're welcome to experiment with these parameters
+    patch_size = 4
+    d_model = 64
+    n_heads = 4
+    n_layers = 2
+    d_ff = 256
+    dropout = 0.1
+
+    runs = []  # TODO: Name your runs
+    results = []
+
+    for kind in runs:
+        model = TinyViT(
+            patch_size=patch_size,
+            d_model=d_model,
+            n_heads=n_heads,
+            n_layers=n_layers,
+            d_ff=d_ff,
+            dropout=dropout,
+            mlp_kind=kind,
+        )
+        # TODO: print anything you might want here
+        print(f"\nRun: {kind} | ")
+        out = train_one_run(kind, model, train_loader, test_loader, cfg)
+        results.append(out)
