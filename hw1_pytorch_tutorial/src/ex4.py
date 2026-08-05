@@ -136,16 +136,16 @@ def patchify(x: torch.Tensor, patch_size: int) -> torch.Tensor:
 
 
 # %%
-# TODO: Add positional encoding as done in the ViT paper and patch projection
 class PatchEmbed(nn.Module):
     def __init__(self, patch_dim: int, d_model: int):
         super().__init__()
-        # TODO: implement
-        raise NotImplementedError
+        self._patch_dim = patch_dim
+        self._d_model = d_model
+
+        self._projection = torch.nn.Linear(in_features=patch_dim, out_features=d_model)
 
     def forward(self, x_patches: torch.Tensor) -> torch.Tensor:
-        # TODO: implement
-        raise NotImplementedError
+        return self._projection(x_patches)
 
 
 class PositionalEmbedding(nn.Module):
