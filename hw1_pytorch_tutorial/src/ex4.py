@@ -173,12 +173,28 @@ class FeedForward(nn.Module):
 
     def __init__(self, d_model: int, d_ff: int, dropout: float):
         super().__init__()
-        # TODO: implement
-        raise NotImplementedError
+
+        self._project_d_ff = torch.nn.Linear(
+            in_features=d_model, out_features=d_ff, bias=False
+        )
+
+        self._activation = torch.nn.GELU()
+
+        self._dropout = torch.nn.Dropout(p=dropout)
+
+        self._project_d_model = torch.nn.Linear(
+            in_features=d_ff, out_features=d_model, bias=False
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO: implement
-        raise NotImplementedError
+
+        result = self._project_d_ff(x)
+
+        result = self._activation(result)
+
+        result = self._dropout(result)
+
+        return self._project_d_model(result)
 
 
 class GLUFeedForward(nn.Module):
@@ -186,12 +202,45 @@ class GLUFeedForward(nn.Module):
 
     def __init__(self, d_model: int, d_ff_gated: int, dropout: float, variant: str):
         super().__init__()
-        # TODO: implement
-        raise NotImplementedError
+
+        self._project_d_ff_gated_1 = torch.nn.Linear(
+            in_features=d_model, out_features=d_ff_gated, bias=False
+        )
+
+        self._project_d_ff_gated_2 = torch.nn.Linear(
+            in_features=d_model, out_features=d_ff_gated, bias=False
+        )
+
+        if variant == "glu":
+            self._activation = torch.nn.Sigmoid()
+        elif variant == "bilinear":
+            self._activation = torch.nn.Identity()
+        elif variant == "reglu":
+            self._activation = torch.nn.ReLU()
+        elif variant == "geglu":
+            self._activation = torch.nn.GELU()
+        elif variant == "swiglu":
+            self._activation = torch.nn.SiLU()
+        else:
+            raise ValueError(f"{variant=} not supported")
+
+        self._dropout = torch.nn.Dropout(p=dropout)
+
+        self._project_d_model = torch.nn.Linear(
+            in_features=d_ff_gated, out_features=d_model, bias=False
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO: implement
-        raise NotImplementedError
+
+        projection_1 = self._project_d_ff_gated_1(x)
+
+        projection_2 = self._project_d_ff_gated_2(x)
+
+        result = self._activation(projection_1) * projection_2
+
+        result = self._dropout(result)
+
+        return self._project_d_model(result)
 
 
 # %%
