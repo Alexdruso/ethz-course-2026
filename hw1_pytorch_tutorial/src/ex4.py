@@ -156,7 +156,11 @@ class PositionalEmbedding(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self._embedding(x)
+        indices = torch.arange(x.shape[-2])
+
+        embeddigs = self._embedding(indices)
+
+        return x + embeddigs
 
 
 # %%
