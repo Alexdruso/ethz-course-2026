@@ -272,7 +272,7 @@ class TransformerEncoderBlock(nn.Module):
 
         intermediate_result = self._layer_norm_1(x)
 
-        intermediate_result = self._attention.forward(
+        intermediate_result, _ = self._attention.forward(
             query=intermediate_result,
             key=intermediate_result,
             value=intermediate_result,
