@@ -151,12 +151,12 @@ class PatchEmbed(nn.Module):
 class PositionalEmbedding(nn.Module):
     def __init__(self, num_tokens: int, d_model: int):
         super().__init__()
-        # TODO: implement
-        raise NotImplementedError
+        self._embedding = torch.nn.Embedding(
+            embedding_dim=d_model, num_embeddings=num_tokens
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO: implement
-        raise NotImplementedError
+        return self._embedding(x)
 
 
 # %%
