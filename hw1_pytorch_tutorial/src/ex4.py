@@ -111,90 +111,28 @@ from torchvision import datasets, transforms
 def patchify(x: torch.Tensor, patch_size: int) -> torch.Tensor:
     """Convert images to patch tokens."""
 
-    *batches, c, h, w = x.shape
+    result = x.clone()
 
-    assert (c * h * w) % patch_size**2 == 0, (
+    *batches, c, h, w = result.shape
+
+    assert h % patch_size == 0, (
         "patchify supports only non overlapping patches of the same size"
     )
 
-    return x.resize(
+    assert w % patch_size == 0, (
+        "patchify supports only non overlapping patches of the same size"
+    )
+
+    h_n = h // patch_size
+    w_n = w // patch_size
+
+    result = result.reshape(*batches, c, h_n, patch_size, w_n, patch_size)
+
+    result = result.permute(*(_ for _ in range(len(batches))), -5, -4, -2, -3, -1)
+
+    return result.reshape(
         *batches, (c * h * w) // patch_size**2, patch_size * patch_size
     )
-
-# %%
-# Debugging aid for patchify: plot the patches it returns for one example image.
-# If patchify is correct, the mosaic on the right reads as the same digit as the
-# panel on the left. If it is wrong, the mosaic is visibly scrambled.
-def plot_patches(image: torch.Tensor, patch_size: int):
-    import matplotlib.pyplot as plt
-
-    c, h, w = image.shape
-    grid = h // patch_size
-    expected_tokens = (c * h * w) // patch_size**2
-
-    tokens = None
-    error = None
-    try:
-        tokens = patchify(image, patch_size)
-        print(
-            f"patchify({tuple(image.shape)}, patch_size={patch_size}) -> {tuple(tokens.shape)}"
-        )
-        if tokens.shape[-1] != patch_size * patch_size:
-            print(
-                f"  ! last dim is {tokens.shape[-1]}, expected {patch_size * patch_size} "
-                f"(each token should hold one flattened {patch_size}x{patch_size} patch)"
-            )
-        if tokens.shape[-2] != expected_tokens:
-            print(
-                f"  ! second-to-last dim is {tokens.shape[-2]}, expected {expected_tokens} "
-                f"({grid}x{grid} patch grid)"
-            )
-    except Exception as exc:  # noqa: BLE001 - we want to keep plotting the input
-        error = exc
-        print(f"patchify raised on input of shape {tuple(image.shape)}: {exc!r}")
-
-    fig = plt.figure(figsize=(9, 4.5))
-    left, right = fig.subfigures(1, 2, wspace=0.05)
-
-    ax = left.subplots()
-    ax.imshow(image[0].detach(), cmap="gray")
-    ax.set_xticks([]), ax.set_yticks([])
-    for k in range(1, grid):
-        ax.axhline(k * patch_size - 0.5, color="tab:red", lw=0.8)
-        ax.axvline(k * patch_size - 0.5, color="tab:red", lw=0.8)
-    ax.set_title(f"input {c}x{h}x{w} with {grid}x{grid} patch grid")
-
-    if error is not None:
-        right.suptitle(f"patchify failed:\n{type(error).__name__}: {error}", fontsize=8)
-    elif tokens.shape[-1] != patch_size * patch_size:
-        right.suptitle(
-            f"cannot show tokens: last dim is {tokens.shape[-1]},\n"
-            f"not reshapeable to {patch_size}x{patch_size}",
-            fontsize=8,
-        )
-    else:
-        flat = tokens.detach().reshape(-1, patch_size * patch_size)
-        n = min(flat.shape[0], grid * grid)
-        axes = right.subplots(grid, grid)
-        for i, sub in enumerate(axes.ravel()):
-            sub.set_xticks([]), sub.set_yticks([])
-            if i < n:
-                sub.imshow(flat[i].reshape(patch_size, patch_size), cmap="gray")
-                sub.set_title(str(i), fontsize=6, pad=1.5)
-            else:
-                sub.set_visible(False)
-        right.suptitle(f"tokens reshaped to {patch_size}x{patch_size}")
-
-    plt.show()
-
-
-if __name__ == "__main__":  # keeps the test suite from plotting on import
-    _demo_ds = datasets.MNIST(
-        root="./data", train=True, download=True, transform=transforms.ToTensor()
-    )
-    _demo_img, _demo_label = _demo_ds[0]  # (1, 28, 28), no batch dim
-    print(f"example label: {_demo_label}")
-    plot_patches(_demo_img, patch_size=4)
 
 
 # %%
