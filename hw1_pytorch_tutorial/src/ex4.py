@@ -257,7 +257,7 @@ class TransformerEncoderBlock(nn.Module):
         self._layer_norm_1 = torch.nn.LayerNorm(normalized_shape=d_model)
 
         self._attention = torch.nn.MultiheadAttention(
-            embed_dim=d_model, num_heads=n_heads
+            embed_dim=d_model, num_heads=n_heads, batch_first=True
         )
 
         self._dropout_1 = torch.nn.Dropout(p=dropout)
