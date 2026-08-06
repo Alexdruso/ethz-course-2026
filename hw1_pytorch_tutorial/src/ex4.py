@@ -316,7 +316,7 @@ class TinyViT(nn.Module):
         patch_size * patch_size
 
         self._project = PatchEmbed(
-            in_features=patch_size * patch_size, out_features=d_model
+            patch_dim=patch_size * patch_size, d_model=d_model
         )
 
         self._positional_embedding = PositionalEmbedding(
@@ -375,7 +375,7 @@ class TrainConfig:
     epochs: int = 3
     lr: float = 3e-4
     weight_decay: float = 0.01
-    device: str = "cpu"  # set "cuda" if available
+    device: str = "cuda"  # set "cuda" if available
 
 
 # %%
@@ -391,6 +391,8 @@ def train_one_run(
         model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay
     )
 
+    loss_fn =torch.nn.CrossEntropyLoss()
+
     train_losses: list[float] = []
     test_accs: list[float] = []
 
@@ -402,7 +404,10 @@ def train_one_run(
             yb = yb.to(cfg.device)
 
             logits = model(xb)
-            loss = ...  # TODO: Your criterion
+            loss = loss_fn.forward(
+                logits,
+                yb
+            )
 
             opt.zero_grad()
             loss.backward()
@@ -428,7 +433,8 @@ def train_one_run(
         )
 
     return {
-        # TODO: Return your metrics that you think will support your claim for this experiment
+        "train_losses": train_losses,
+        "test_accs": test_accs
     }
 
 
@@ -450,7 +456,6 @@ if __name__ == "__main__":
         test_ds, batch_size=cfg.batch_size, shuffle=False, num_workers=0
     )
 
-    # Tiny model example. TODO: You're welcome to experiment with these parameters
     patch_size = 4
     d_model = 64
     n_heads = 4
@@ -458,7 +463,7 @@ if __name__ == "__main__":
     d_ff = 256
     dropout = 0.1
 
-    runs = []  # TODO: Name your runs
+    runs = ["ffn", "glu"]
     results = []
 
     for kind in runs:
@@ -475,3 +480,5 @@ if __name__ == "__main__":
         print(f"\nRun: {kind} | ")
         out = train_one_run(kind, model, train_loader, test_loader, cfg)
         results.append(out)
+
+    print(results)
