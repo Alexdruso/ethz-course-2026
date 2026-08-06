@@ -315,15 +315,12 @@ class TinyViT(nn.Module):
         self.patch_size = patch_size
         patch_size * patch_size
 
-        if mlp_kind == "ffn":
-            mlp = FeedForward(d_model=d_model, d_ff=d_ff, dropout=dropout)
-        else:
-            mlp = GLUFeedForward(
-                d_model=d_model, d_ff_gated=d_ff, dropout=dropout, variant=mlp_kind
-            )
-
-        self._project = torch.nn.Linear(
+        self._project = PatchEmbed(
             in_features=patch_size * patch_size, out_features=d_model
+        )
+
+        self._positional_embedding = PositionalEmbedding(
+            num_tokens=self.num_tokens, d_model=d_model
         )
 
         self.blocks = nn.ModuleList(
@@ -331,7 +328,16 @@ class TinyViT(nn.Module):
                 TransformerEncoderBlock(
                     d_model=d_model,
                     n_heads=n_heads,
-                    mlp=mlp,
+                    mlp=(
+                        FeedForward(d_model=d_model, d_ff=d_ff, dropout=dropout)
+                        if mlp_kind == "ffn"
+                        else GLUFeedForward(
+                            d_model=d_model,
+                            d_ff_gated=d_ff,
+                            dropout=dropout,
+                            variant=mlp_kind,
+                        )
+                    ),
                     dropout=dropout,
                 )
                 for _ in range(n_layers)
@@ -348,6 +354,8 @@ class TinyViT(nn.Module):
         result = patchify(x=x, patch_size=self.patch_size)
 
         result = self._project(result)
+
+        result = self._positional_embedding(result)
 
         for block in self.blocks:
             result = block(result)
