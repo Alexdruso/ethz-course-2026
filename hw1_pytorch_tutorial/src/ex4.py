@@ -322,10 +322,14 @@ class TinyViT(nn.Module):
                 d_model=d_model, d_ff_gated=d_ff, dropout=dropout, variant=mlp_kind
             )
 
+        self._project = torch.nn.Linear(
+            in_features=patch_size * patch_size, out_features=d_model
+        )
+
         self.blocks = nn.ModuleList(
             [
                 TransformerEncoderBlock(
-                    d_model=d_model, # wrong
+                    d_model=d_model,
                     n_heads=n_heads,
                     mlp=mlp,
                     dropout=dropout,
@@ -335,13 +339,15 @@ class TinyViT(nn.Module):
         )
 
         self.prediction = torch.nn.Linear(
-            in_features= self.num_tokens * d_model,
+            in_features=self.num_tokens * d_model,
             out_features=10,  # mnist
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
 
         result = patchify(x=x, patch_size=self.patch_size)
+
+        result = self._project(result)
 
         for block in self.blocks:
             result = block(result)
