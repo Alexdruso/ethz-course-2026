@@ -47,11 +47,11 @@ def build_keypoints(count=16, width=0.25, x_offset=0.3, z_offset=0.25):
 
     y, z = get_lemniscate_keypoint(t=t, a=width)
 
-    x = np.array([x_offset] * count).reshape((count, 1))
+    x = np.array([x_offset] * count)[..., np.newaxis]
 
-    y = y.reshape((count, 1))
+    y = y[..., np.newaxis]
 
-    z = (z + z_offset).reshape((count, 1))
+    z = (z + z_offset)[..., np.newaxis]
 
     return np.concat((x, y, z), axis=1)
 
