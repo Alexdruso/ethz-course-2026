@@ -2,9 +2,10 @@ import mujoco
 import numpy as np
 
 
-def get_lemniscate_keypoint(t, a=0.2):
+def get_lemniscate_keypoint(
+    t, a=0.2
+) -> tuple[np.ndarray[np.float64], np.ndarray[np.float64]]:
     """
-    TODO:
     Generate a set of keypoints using Lemniscate of Bernoulli (infinity sign) in the Y-Z plane.
         The formula is: y = a * cos(t) / (1 + sin(t)^2)
                         z = a * cos(t) * sin(t) / (1 + sin(t)^2)
@@ -18,7 +19,10 @@ def get_lemniscate_keypoint(t, a=0.2):
         y (float or np.ndarray): y coordinates of the keypoint on the lemniscate.
         z (float or np.ndarray): z coordinates of the keypoint on the lemniscate.
     """
-    raise NotImplementedError()
+    y = a * np.cos(t) / (1 + np.sin(t) ** 2)
+    z = a * np.cos(t) * np.sin(t) / (1 + np.sin(t) ** 2)
+
+    return y, z
 
 
 def build_keypoints(count=16, width=0.25, x_offset=0.3, z_offset=0.25):
@@ -39,7 +43,17 @@ def build_keypoints(count=16, width=0.25, x_offset=0.3, z_offset=0.25):
     Returns:
         np.ndarray: Array of shape (count, 3) containing the generated keypoints.
     """
-    raise NotImplementedError()
+    t = np.linspace(start=0, stop=2 * np.pi, num=count, endpoint=False)
+
+    y, z = get_lemniscate_keypoint(t=t, a=width)
+
+    x = np.array([x_offset] * count).reshape((count, 1))
+
+    y = y.reshape((count, 1))
+
+    z = (z + z_offset).reshape((count, 1))
+
+    return np.concat((x, y, z), axis=1)
 
 
 def ik_track(
