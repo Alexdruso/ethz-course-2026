@@ -4,9 +4,10 @@ PYTHON ?= $(VENV)/bin/python
 UV ?= uv
 RUFF ?= uvx ruff
 TY ?= uvx ty
-PY_SRC ?= env exercises scripts
+PY_SRC ?= env exercises scripts tests
 
 STAMP := $(VENV)/.deps-stamp
+DEV_STAMP := $(VENV)/.dev-deps-stamp
 
 # Scripts import both `env`/`exercises` (repo root) and `__init__`/`utils` (scripts/).
 RUN := PYTHONPATH=. $(PYTHON)
@@ -20,7 +21,7 @@ LOAD_RUN ?= 1
 CHECKPOINT ?= 500
 
 .DEFAULT_GOAL := help
-.PHONY: help venv install clean-venv py-fmt py-lint py-static \
+.PHONY: help venv install install-dev clean-venv py-fmt py-lint py-static py-test \
         interactive ik spline pid train eval eval-traj tensorboard
 
 help:  ## Show the available targets
@@ -34,6 +35,11 @@ install: $(STAMP)  ## Install pinned requirements + so101_gym (editable) into th
 $(STAMP): requirements.txt pyproject.toml | $(VENV)/pyvenv.cfg
 	$(UV) pip install --python $(PYTHON) -r requirements.txt
 	$(UV) pip install --python $(PYTHON) -e .
+	@touch $@
+
+install-dev: $(DEV_STAMP)  ## Install the test-only dependencies (pytest)
+$(DEV_STAMP): requirements-dev.txt | $(STAMP)
+	$(UV) pip install --python $(PYTHON) -r requirements-dev.txt
 	@touch $@
 
 clean-venv:  ## Remove the venv
@@ -50,6 +56,11 @@ py-lint:  ## Report lint issues without changing any files
 
 py-static:  ## Run astral's ty type checker
 	$(TY) check --python $(PYTHON) $(PY_SRC)
+
+# Unimplemented exercises are reported as skips, so a failure always means
+# something is actually wrong. Pass pytest flags via ARGS="-k lemniscate -x".
+py-test: $(DEV_STAMP)  ## Run the exercise test suite (ARGS="-k ex1" to narrow it down)
+	$(RUN) -m pytest $(ARGS)
 
 interactive: $(STAMP)  ## Smoke test: open the MuJoCo viewer with the SO-100 arm
 	$(RUN) scripts/interactive.py
