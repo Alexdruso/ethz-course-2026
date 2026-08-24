@@ -26,7 +26,7 @@ def get_lemniscate_keypoint(
 
 
 def build_keypoints(count=16, width=0.25, x_offset=0.3, z_offset=0.25):
-    """TODO:
+    """
     Build a set of keypoints (x, y, z) along the lemniscate trajectory.
     Steps:
     1. Generate `count` linearly spaced time values `t` between 0 and 2π (exclusive).
